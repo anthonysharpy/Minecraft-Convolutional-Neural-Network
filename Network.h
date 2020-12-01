@@ -99,7 +99,7 @@ float GetSuitableMaxBiasForLayer(int layer)
 		return 100;
 		break;
 	case 5:  // outputlayer
-		return 100;
+		return 500;
 		break;
 	default:
 		cout << "ERROR: UNKNOWN LAYER";

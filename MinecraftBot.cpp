@@ -362,7 +362,7 @@ int main()
 
 	LoadArraysFromFile();
 	//OurSimulation.CurrentBestCost = pow(100 - OurSimulation.BestNumberofPorkchops, 2);
-	OurSimulation.TweakChance = 1.0f * pow(0.87f, OurSimulation.BestNumberofPorkchops);
+	OurSimulation.TweakChance = 1.0f * pow(0.96f, OurSimulation.BestNumberofPorkchops);
 	SaveNetwork();
 
 	GetPixels();
@@ -486,7 +486,7 @@ int main()
 			//OurSimulation.CurrentBestCost = averagecost;
 			OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
 			OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
-			OurSimulation.TweakChance = 1.0f * pow(0.87f, OurSimulation.SimulationTotalPorkchops);
+			OurSimulation.TweakChance = 1.0f * pow(0.96f, OurSimulation.SimulationTotalPorkchops);
 
 			SaveNetwork();
 		}
