@@ -265,11 +265,14 @@ void InitialiseDefaultSimulationInfo()
 {
 	OurSimulation.MinimumThinkTime = 0.1f;
 	OurSimulation.ThinksPerSimulation = 200;
-	OurSimulation.WorstPossibleCost = (float)pow(100, 2);
+	//OurSimulation.WorstPossibleCost = (float)pow(100, 2);
 	OurSimulation.CurrentAverageIteration = 0;
-	OurSimulation.CurrentBestCost = OurSimulation.WorstPossibleCost;
-	OurSimulation.GoalNumberofSimulations = 9000000000;
+	//OurSimulation.CurrentBestCost = OurSimulation.WorstPossibleCost;
+	OurSimulation.BestNumberofPorkchops = 0;
+	OurSimulation.GoalNumberofSimulations = 90000000;
 	OurSimulation.AverageAlgorithmTries = 4;
+	OurSimulation.SimulationTotalPorkchops = 0;
+	OurSimulation.TweakChance = 1.0f;
 }
 
 float thinktime = 0;
@@ -302,6 +305,9 @@ void ProcessMessages()
 
 void TakeScreenshots()
 {
+	PushConsoleLine("Taking screenshots.");
+	PrintConsole();
+
 	// input
 
 	ScreenshotInput("sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_inputpixels");
@@ -339,6 +345,8 @@ void TakeScreenshots()
 	}
 }
 
+int currenthink = 0;
+
 int main()
 {
 	hWnd = FindWindowA(NULL, "Minecraft 1.16.4 - Singleplayer");
@@ -353,8 +361,8 @@ int main()
 	Sleep(3000);
 
 	LoadArraysFromFile();
-	OurSimulation.CurrentBestCost = pow(100 - OurSimulation.BestNumberofPorkchops, 2);
-	OurSimulation.TweakChance = 1.0f * pow(0.9f, OurSimulation.BestNumberofPorkchops);
+	//OurSimulation.CurrentBestCost = pow(100 - OurSimulation.BestNumberofPorkchops, 2);
+	OurSimulation.TweakChance = 1.0f * pow(0.97f, OurSimulation.BestNumberofPorkchops);
 	SaveNetwork();
 
 	GetPixels();
@@ -364,12 +372,16 @@ int main()
 
 	for (; OurSimulation.CurrentNumberofSimulations < OurSimulation.GoalNumberofSimulations; OurSimulation.CurrentNumberofSimulations++)
 	{
+		timestweaked = 0;
+		timesnottweaked = 0;
+
 		TweakStuff(OurSimulation.TweakChance, 1.1f);
+
+		//OurSimulation.CurrentCost = 0;
+		OurSimulation.SimulationTotalPorkchops = 0;
 
 		for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
 		{
-			ClearConsole();
-
 			numtimesattacked = 0;
 			havemoved = false;
 
@@ -378,43 +390,43 @@ int main()
 			GiveDiamondSword();
 			EnchantSharpness5();
 
-			timestweaked = 0;
-			timesnottweaked = 0;
+			screenshotted = false;
 
-			OurSimulation.CurrentThink = 0;
+			ClearConsole();
 
-			for (; OurSimulation.CurrentThink < OurSimulation.ThinksPerSimulation; OurSimulation.CurrentThink++)
+			int porknow = 0;
+
+			for (currenthink = 0; currenthink < OurSimulation.ThinksPerSimulation; currenthink++)
 			{
 				long a = GetTime();
 
 				ProcessMessages();
 
-				if (OurSimulation.CurrentThink >= 150 && HowMuchUncookedPork() == 0)
+				if (HowMuchUncookedPork() > porknow) porknow = HowMuchUncookedPork(); // because it seems sometimes the function returns zero when it shouldnt; this protects the variable
+
+				if (currenthink >= 150 && porknow == 0 && OurSimulation.CurrentAverageIteration == 0)
 				{
 					PushConsoleLine("Not getting anything. Suiciding.");
 					PrintConsole();
-					OurSimulation.CurrentThink = OurSimulation.ThinksPerSimulation - 1;
-					OurSimulation.CurrentAverageIteration = OurSimulation.AverageAlgorithmTries - 1;
+					goto end_simulation;
 				}
-				if (OurSimulation.CurrentThink >= 50 && numtimesattacked == 0)
+				if (currenthink >= 50 && numtimesattacked == 0 && OurSimulation.CurrentAverageIteration == 0)
 				{
 					PushConsoleLine("Failed to attack. Suiciding.");
 					PrintConsole();
-					OurSimulation.CurrentThink = OurSimulation.ThinksPerSimulation - 1;
-					OurSimulation.CurrentAverageIteration = OurSimulation.AverageAlgorithmTries - 1;
+					goto end_simulation;
 				}
-				if (OurSimulation.CurrentThink >= 40 && havemoved == false)
+				if (currenthink >= 40 && havemoved == false && OurSimulation.CurrentAverageIteration == 0)
 				{
 					PushConsoleLine("Failed to move. Suiciding.");
 					PrintConsole();
-					OurSimulation.CurrentThink = OurSimulation.ThinksPerSimulation - 1;
-					OurSimulation.CurrentAverageIteration = OurSimulation.AverageAlgorithmTries - 1;
+					goto end_simulation;
 				}
 
 				if (GetAsyncKeyState(VK_DOWN) & 0x8000)
 				{
 					AllKeysUp();
-					cout << "Paused. Press UP to unpause." << endl;
+					std::cout << "Paused. Press UP to unpause." << endl;
 
 					while (!(GetAsyncKeyState(VK_UP) & 0x8000))
 					{
@@ -445,53 +457,52 @@ int main()
 					Sleep((int)((OurSimulation.MinimumThinkTime - thinktime) * 1000));
 				}
 
-				if ((OurSimulation.CurrentThink % 5) == 0) PrintConsole();
+				if ((currenthink % 5) == 0) PrintConsole();
 			}
 
-			int totalpork = HowMuchUncookedPork();
+			PushConsoleLine("Iteration finished.");
+			PrintConsole();
 
-			float cost = (float)pow(90 - totalpork, 2);
-
-			OurSimulation.CurrentAverageIteration++;
-			OurSimulation.CurrentCost += cost;
-			OurSimulation.AverageModeTotalPorkchops += totalpork;
-
-			if (OurSimulation.CurrentAverageIteration == OurSimulation.AverageAlgorithmTries)
-			{
-				float averagecost = OurSimulation.CurrentCost / (float)OurSimulation.AverageAlgorithmTries;
-				float averagepork = OurSimulation.AverageModeTotalPorkchops / (float)OurSimulation.AverageAlgorithmTries;
-
-				if (averagecost <= OurSimulation.CurrentBestCost)
-				{
-					PushConsoleLine("Better or same cost; keeping");
-
-					OurSimulation.CurrentBestCost = averagecost;
-					OurSimulation.BestNumberofPorkchops = averagepork;
-					OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
-					OurSimulation.TweakChance = 1.0f * pow(0.9f, averagepork);
-
-					SaveNetwork();
-				}
-				else
-				{
-					PushConsoleLine("Worse cost; reverting network");
-					RevertTweaks();
-				}
-
-				OurSimulation.CurrentCost = 0;
-				OurSimulation.AverageModeTotalPorkchops = 0;
-				OurSimulation.CurrentAverageIteration = 0;
-			}
-
-			SaveArraysToFile();
-
-			screenshotted = false;
-			OurSimulation.CurrentThink = 0;
 			AllKeysUp();
+
+			//float cost = (float)pow(100 - porknow, 2);
+
+			//OurSimulation.CurrentCost += cost;
+			OurSimulation.SimulationTotalPorkchops += porknow;
 		}
+
+	end_simulation:
+
+		PushConsoleLine("Simulation finished.");
+
+		AllKeysUp();
+
+		//float averagecost = OurSimulation.CurrentCost / (float)OurSimulation.AverageAlgorithmTries;
+
+		//if (averagecost <= OurSimulation.CurrentBestCost)
+		if(OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops)
+		{
+			PushConsoleLine("Better or same cost; keeping");
+
+			//OurSimulation.CurrentBestCost = averagecost;
+			OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
+			OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
+			OurSimulation.TweakChance = 1.0f * pow(0.97f, OurSimulation.SimulationTotalPorkchops);
+
+			SaveNetwork();
+		}
+		else
+		{
+			PushConsoleLine("Worse cost; reverting network");
+			RevertTweaks();
+		}
+
+		PrintConsole();
+
+		SaveArraysToFile();
 	}
 
-	cout << "Finished. Best cost was " + to_string(OurSimulation.CurrentBestCost) << endl;
+	cout << "Program finished."; // Best cost was " + to_string(OurSimulation.CurrentBestCost) << endl;
 
 	system("Pause");
 }
