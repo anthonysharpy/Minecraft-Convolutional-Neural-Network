@@ -362,7 +362,7 @@ int main()
 
 	LoadArraysFromFile();
 	//OurSimulation.CurrentBestCost = pow(100 - OurSimulation.BestNumberofPorkchops, 2);
-	OurSimulation.TweakChance = 1.0f * pow(0.97f, OurSimulation.BestNumberofPorkchops);
+	OurSimulation.TweakChance = 1.0f * pow(0.87f, OurSimulation.BestNumberofPorkchops);
 	SaveNetwork();
 
 	GetPixels();
@@ -387,8 +387,7 @@ int main()
 
 			ClearInventory();
 			Suicide();
-			GiveDiamondSword();
-			EnchantSharpness5();
+			Sleep(2000);
 
 			screenshotted = false;
 
@@ -487,7 +486,7 @@ int main()
 			//OurSimulation.CurrentBestCost = averagecost;
 			OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
 			OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
-			OurSimulation.TweakChance = 1.0f * pow(0.97f, OurSimulation.SimulationTotalPorkchops);
+			OurSimulation.TweakChance = 1.0f * pow(0.87f, OurSimulation.SimulationTotalPorkchops);
 
 			SaveNetwork();
 		}
