@@ -7,7 +7,6 @@
 #include "FilterRGBGroup.h"
 
 extern long GetTime();
-extern bool DebugTime;
 extern const int BotViewScreenWidth;
 extern const int BotViewScreenHeight;
 

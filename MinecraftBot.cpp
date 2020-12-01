@@ -49,8 +49,6 @@ long GetTime()
 
 void GetPixels()
 {
-	long a = GetTime();
-
 	hWnd = FindWindowA(NULL, "Minecraft 1.16.4 - Singleplayer");
 
 	HDC hdcScreen;
@@ -187,10 +185,6 @@ void GetPixels()
 
 	ReleaseDC(hWnd, hdcWindow);
 	ReleaseDC(NULL, hdcScreen);
-
-	long b = GetTime();
-	if (DebugTime) cout << "GetPixels() took " + to_string(((b - a) / 1000000.0f)) + " seconds" << endl;
-
 }
 
 int numtimesattacked = 0;
