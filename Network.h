@@ -82,6 +82,25 @@ float SavedOutputBiases[OUTPUTLAYERSIZE];
 
 extern RGBQUAD* Pixels;
 
+float GetFilterWeightsSum(int layer)
+{
+	if (layer == 1)
+	{
+		float total = 0;
+
+		for (int i = 0; i < 9; i++)
+		{
+			total += Layer1Filters[1].OurFilter.Weights[i].blueWeight;
+			total += Layer1Filters[1].OurFilter.Weights[i].greenWeight;
+			total += Layer1Filters[1].OurFilter.Weights[i].redWeight;
+		}
+
+		return total;
+	}
+
+	exit(0);
+}
+
 float GetSuitableMaxBiasForLayer(int layer)
 {
 	switch (layer)

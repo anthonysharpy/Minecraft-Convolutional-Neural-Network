@@ -361,7 +361,6 @@ int main()
 	Sleep(3000);
 
 	LoadArraysFromFile();
-	//OurSimulation.CurrentBestCost = pow(100 - OurSimulation.BestNumberofPorkchops, 2);
 	OurSimulation.TweakChance = 1.0f * pow(0.96f, OurSimulation.BestNumberofPorkchops);
 	SaveNetwork();
 
@@ -377,7 +376,6 @@ int main()
 
 		TweakStuff(OurSimulation.TweakChance, 1.1f);
 
-		//OurSimulation.CurrentCost = 0;
 		OurSimulation.SimulationTotalPorkchops = 0;
 
 		for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
@@ -400,6 +398,21 @@ int main()
 				long a = GetTime();
 
 				ProcessMessages();
+
+				GetPixels();
+				CalculateLayer1();
+				CalculateLayer2();
+				CalculateLayer3();
+				CalculateLayer4();
+				CalculateOutputLayer();
+
+				if (!screenshotted)
+				{
+					TakeScreenshots();
+					screenshotted = true;
+				}
+
+				PerformOutputs();
 
 				if (HowMuchUncookedPork() > porknow) porknow = HowMuchUncookedPork(); // because it seems sometimes the function returns zero when it shouldnt; this protects the variable
 
@@ -425,27 +438,11 @@ int main()
 				if (GetAsyncKeyState(VK_DOWN) & 0x8000)
 				{
 					AllKeysUp();
+
 					std::cout << "Paused. Press UP to unpause." << endl;
 
-					while (!(GetAsyncKeyState(VK_UP) & 0x8000))
-					{
-					}
+					while (!(GetAsyncKeyState(VK_UP) & 0x8000)) {}
 				}
-
-				GetPixels();
-				CalculateLayer1();
-				CalculateLayer2();
-				CalculateLayer3();
-				CalculateLayer4();
-				CalculateOutputLayer();
-
-				if (!screenshotted)
-				{
-					TakeScreenshots();
-					screenshotted = true;
-				}
-
-				PerformOutputs();
 
 				long b = GetTime();
 
@@ -462,11 +459,6 @@ int main()
 			PushConsoleLine("Iteration finished.");
 			PrintConsole();
 
-			AllKeysUp();
-
-			//float cost = (float)pow(100 - porknow, 2);
-
-			//OurSimulation.CurrentCost += cost;
 			OurSimulation.SimulationTotalPorkchops += porknow;
 		}
 
@@ -476,14 +468,10 @@ int main()
 
 		AllKeysUp();
 
-		//float averagecost = OurSimulation.CurrentCost / (float)OurSimulation.AverageAlgorithmTries;
-
-		//if (averagecost <= OurSimulation.CurrentBestCost)
 		if(OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops)
 		{
 			PushConsoleLine("Better or same cost; keeping");
 
-			//OurSimulation.CurrentBestCost = averagecost;
 			OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
 			OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
 			OurSimulation.TweakChance = 1.0f * pow(0.96f, OurSimulation.SimulationTotalPorkchops);
@@ -501,7 +489,7 @@ int main()
 		SaveArraysToFile();
 	}
 
-	cout << "Program finished."; // Best cost was " + to_string(OurSimulation.CurrentBestCost) << endl;
+	cout << "Program finished."; 
 
 	system("Pause");
 }
