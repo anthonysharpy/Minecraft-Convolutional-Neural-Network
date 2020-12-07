@@ -265,14 +265,11 @@ void InitialiseDefaultSimulationInfo()
 {
 	OurSimulation.MinimumThinkTime = 0.1f;
 	OurSimulation.ThinksPerSimulation = 200;
-	//OurSimulation.WorstPossibleCost = (float)pow(100, 2);
 	OurSimulation.CurrentAverageIteration = 0;
-	//OurSimulation.CurrentBestCost = OurSimulation.WorstPossibleCost;
 	OurSimulation.BestNumberofPorkchops = 0;
 	OurSimulation.GoalNumberofSimulations = 90000000;
 	OurSimulation.AverageAlgorithmTries = 4;
 	OurSimulation.SimulationTotalPorkchops = 0;
-	OurSimulation.TweakChance = 1.0f;
 }
 
 float thinktime = 0;
@@ -347,6 +344,8 @@ void TakeScreenshots()
 
 int currenthink = 0;
 
+float TweakChance = 0;
+
 int main()
 {
 	hWnd = FindWindowA(NULL, "Minecraft 1.16.4 - Singleplayer");
@@ -361,7 +360,6 @@ int main()
 	Sleep(3000);
 
 	LoadArraysFromFile();
-	OurSimulation.TweakChance = 1.0f * pow(0.96f, OurSimulation.BestNumberofPorkchops);
 	SaveNetwork();
 
 	GetPixels();
@@ -374,7 +372,8 @@ int main()
 		timestweaked = 0;
 		timesnottweaked = 0;
 
-		TweakStuff(OurSimulation.TweakChance, 1.1f);
+		TweakChance = 1.0f * pow(0.96f, OurSimulation.BestNumberofPorkchops);
+		TweakStuff(TweakChance, 1.1f);
 
 		OurSimulation.SimulationTotalPorkchops = 0;
 
@@ -474,7 +473,6 @@ int main()
 
 			OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
 			OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
-			OurSimulation.TweakChance = 1.0f * pow(0.96f, OurSimulation.SimulationTotalPorkchops);
 
 			SaveNetwork();
 		}

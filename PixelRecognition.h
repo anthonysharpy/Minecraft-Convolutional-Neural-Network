@@ -210,7 +210,13 @@ int HowMuchUncookedPork()
 
 	for (int i = 0; i < 10; i++)
 	{
-		if (GetSlotItemType(i) == "Raw Porkchop") total += GetSlotQuantity(i);
+		if (GetSlotItemType(i) == "Raw Porkchop")
+		{
+			int amount = GetSlotQuantity(i);
+
+			if (amount == 0) total += 1; // because finding pork with no number means theres 1
+			else total += amount;
+		}
 	}
 
 	return total;
