@@ -90,9 +90,9 @@ float GetFilterWeightsSum(int layer)
 
 		for (int i = 0; i < 9; i++)
 		{
-			total += Layer1Filters[1].OurFilter.Weights[i].blueWeight;
-			total += Layer1Filters[1].OurFilter.Weights[i].greenWeight;
-			total += Layer1Filters[1].OurFilter.Weights[i].redWeight;
+			total += Layer1Filters[0].OurFilter.Weights[i].blueWeight;
+			total += Layer1Filters[0].OurFilter.Weights[i].greenWeight;
+			total += Layer1Filters[0].OurFilter.Weights[i].redWeight;
 		}
 
 		return total;
@@ -157,7 +157,7 @@ std::uniform_int_distribution<long long unsigned> distribution(0, 0xFFFFFFFFFFFF
 
 float GetRandomNumber(double from, double to)
 {
-	unsigned long long range = (to - from)*100000.0;
+	unsigned long long range = (unsigned long long)((to - from)*100000.0);
 
 	unsigned long long result = distribution(generator) % range;
 
@@ -199,8 +199,13 @@ inline RGBQUADFLOAT RectifiedLinearUnitFunctionRGB(RGBQUADFLOAT x)
 	RGBQUADFLOAT returnv;
 
 	if (x.rgbBlue > 0) returnv.rgbBlue = x.rgbBlue;
+	else returnv.rgbBlue = 0;
 	if (x.rgbGreen > 0) returnv.rgbGreen = x.rgbGreen;
+	else returnv.rgbGreen = 0; 
 	if (x.rgbRed > 0) returnv.rgbRed = x.rgbRed;
+	else returnv.rgbRed = 0;
+
+	returnv.reserved = 0;
 
 	return returnv;
 }
@@ -641,28 +646,28 @@ void CalculateOutputLayer()
 
 void RevertTweaks()
 {
-	memcpy(Layer1Filters, SavedLayer1Filters, sizeof(SavedLayer1Filters));
-	memcpy(Layer2Filters, SavedLayer2Filters, sizeof(SavedLayer2Filters));
-	memcpy(Layer3Filters, SavedLayer3Filters, sizeof(SavedLayer3Filters));
+	memcpy(Layer1Filters, SavedLayer1Filters, sizeof(FilterRGBGroup) * LAYER1NUMFILTERS);
+	memcpy(Layer2Filters, SavedLayer2Filters, sizeof(FilterRGBGroup) * LAYER2NUMFILTERS);
+	memcpy(Layer3Filters, SavedLayer3Filters, sizeof(FilterRGBGroup) * LAYER3NUMFILTERS);
 
-	memcpy(Layer4Biases, SavedLayer4Biases, sizeof(SavedLayer4Biases));
-	memcpy(Layer4Weights, SavedLayer4Weights, sizeof(SavedLayer4Weights));
+	memcpy(Layer4Biases, SavedLayer4Biases, sizeof(float) * LAYER4SIZE);
+	memcpy(Layer4Weights, SavedLayer4Weights, sizeof(float) * LAYER4NUMWEIGHTS);
 
-	memcpy(OutputWeights, SavedOutputWeights, sizeof(SavedOutputWeights));
-	memcpy(OutputBiases, SavedOutputBiases, sizeof(SavedOutputBiases));
+	memcpy(OutputWeights, SavedOutputWeights, sizeof(float) * OUTPUTLAYERNUMWEIGHTS);
+	memcpy(OutputBiases, SavedOutputBiases, sizeof(float) * OUTPUTLAYERSIZE);
 }
 
 void SaveNetwork()
 {
-	memcpy(SavedLayer1Filters, Layer1Filters, sizeof(Layer1Filters));
-	memcpy(SavedLayer2Filters, Layer2Filters, sizeof(Layer2Filters));
-	memcpy(SavedLayer3Filters, Layer3Filters, sizeof(Layer3Filters));
+	memcpy(SavedLayer1Filters, Layer1Filters, sizeof(FilterRGBGroup) * LAYER1NUMFILTERS);
+	memcpy(SavedLayer2Filters, Layer2Filters, sizeof(FilterRGBGroup) * LAYER2NUMFILTERS);
+	memcpy(SavedLayer3Filters, Layer3Filters, sizeof(FilterRGBGroup) * LAYER3NUMFILTERS);
 
-	memcpy(SavedLayer4Biases, Layer4Biases, sizeof(Layer4Biases));
-	memcpy(SavedLayer4Weights, Layer4Weights, sizeof(Layer4Weights));
+	memcpy(SavedLayer4Biases, Layer4Biases, sizeof(float) * LAYER4SIZE);
+	memcpy(SavedLayer4Weights, Layer4Weights, sizeof(float) * LAYER4NUMWEIGHTS);
 
-	memcpy(SavedOutputWeights, OutputWeights, sizeof(OutputWeights));
-	memcpy(SavedOutputBiases, OutputBiases, sizeof(OutputBiases));
+	memcpy(SavedOutputWeights, OutputWeights, sizeof(float) * OUTPUTLAYERNUMWEIGHTS);
+	memcpy(SavedOutputBiases, OutputBiases, sizeof(float) * OUTPUTLAYERSIZE);
 }
 
 int timestweaked;

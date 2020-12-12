@@ -53,8 +53,8 @@ void GetPixels()
 
 	HDC hdcScreen;
 	HDC hdcWindow;
-	HDC hdcMemDC = NULL;
-	HBITMAP hbmScreen = NULL;
+	HDC hdcMemDC;
+	_Post_ _Notnull_ HBITMAP hbmScreen;
 	BITMAP bmpScreen;
 	RECT rcClient;
 	BITMAPINFOHEADER   bi;
@@ -73,6 +73,7 @@ void GetPixels()
 	{
 		cout << "GetDC(hWnd) failed." << endl;
 		system("Pause");
+		return;
 	}
 
 	hdcMemDC = CreateCompatibleDC(hdcWindow);
@@ -80,6 +81,7 @@ void GetPixels()
 	if (!hdcMemDC)
 	{
 		MessageBox(hWnd, L"CreateCompatibleDC has failed", L"Failed", MB_OK);
+		return;
 	}
 
 	if (GetClientRect(hWnd, &rcClient) == 0)
@@ -110,15 +112,13 @@ void GetPixels()
 	{
 		cout << "CreateCompatibleBitmap() returned null ... rcClient.right was " + to_string(rcClient.right) << endl;
 		system("Pause");
+		return;
 	}
-
-	if (!hbmScreen)
+	else
 	{
-		MessageBox(hWnd, L"CreateCompatibleBitmap Failed", L"Failed", MB_OK);
+		// Select the compatible bitmap into the compatible memory DC.
+		SelectObject(hdcMemDC, hbmScreen);
 	}
-
-	// Select the compatible bitmap into the compatible memory DC.
-	SelectObject(hdcMemDC, hbmScreen);
 
 	// Bit block transfer into our compatible memory DC.
 	if (!BitBlt(hdcMemDC,
@@ -346,6 +346,28 @@ int currenthink = 0;
 
 float TweakChance = 0;
 
+enum class RunMode { Learning, Performance};
+
+RunMode CurrentRunMode;
+
+void GetRunMode()
+{
+	cout << "What mode should be run?\n1: learning.\n2: performance.\n";
+
+	int mode = -5;
+
+	cin >> mode;
+
+	if (mode == 1) CurrentRunMode = RunMode::Learning;
+	else if (mode == 2) CurrentRunMode = RunMode::Performance;
+	else
+	{
+		cout << "ERROR: invalid mode.\n";
+		system("Pause");
+		exit(0);
+	}
+}
+
 int main()
 {
 	hWnd = FindWindowA(NULL, "Minecraft 1.16.4 - Singleplayer");
@@ -355,6 +377,8 @@ int main()
 	GotoMinecraftWindow();
 
 	InitialiseInput();
+
+	GetRunMode();
 
 	cout << "Starting in 3 seconds" << endl << endl;
 	Sleep(3000);
@@ -367,26 +391,139 @@ int main()
 
 	bool screenshotted = false;
 
-	for (; OurSimulation.CurrentNumberofSimulations < OurSimulation.GoalNumberofSimulations; OurSimulation.CurrentNumberofSimulations++)
+	if (CurrentRunMode == RunMode::Learning)
 	{
-		timestweaked = 0;
-		timesnottweaked = 0;
-
-		TweakChance = 1.0f * pow(0.96f, OurSimulation.BestNumberofPorkchops);
-		TweakStuff(TweakChance, 1.1f);
-
-		OurSimulation.SimulationTotalPorkchops = 0;
-
-		for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
+		for (; OurSimulation.CurrentNumberofSimulations < OurSimulation.GoalNumberofSimulations; OurSimulation.CurrentNumberofSimulations++)
 		{
-			numtimesattacked = 0;
-			havemoved = false;
+			timestweaked = 0;
+			timesnottweaked = 0;
 
+			TweakChance = 1.0f * pow(0.96f, OurSimulation.BestNumberofPorkchops);
+			TweakStuff(TweakChance, 1.1f);
+
+			OurSimulation.SimulationTotalPorkchops = 0;
+
+			for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
+			{
+				numtimesattacked = 0;
+				havemoved = false;
+
+				ClearInventory();
+				Suicide();
+				Sleep(1500);
+
+				screenshotted = false;
+
+				ClearConsole();
+
+				int porknow = 0;
+
+				for (currenthink = 0; currenthink < OurSimulation.ThinksPerSimulation; currenthink++)
+				{
+					long a = GetTime();
+
+					ProcessMessages();
+
+					GetPixels();
+					CalculateLayer1();
+					CalculateLayer2();
+					CalculateLayer3();
+					CalculateLayer4();
+					CalculateOutputLayer();
+
+					if (!screenshotted)
+					{
+						TakeScreenshots();
+						screenshotted = true;
+					}
+
+					PerformOutputs();
+
+					if (HowMuchUncookedPork() > porknow) porknow = HowMuchUncookedPork(); // because it seems sometimes the function returns zero when it shouldnt; this protects the variable
+
+					if (currenthink >= 150 && porknow == 0 && OurSimulation.CurrentAverageIteration == 0)
+					{
+						PushConsoleLine("Not getting anything. Suiciding.");
+						PrintConsole();
+						goto end_simulation;
+					}
+					else if (currenthink >= 50 && numtimesattacked == 0 && OurSimulation.CurrentAverageIteration == 0)
+					{
+						PushConsoleLine("Failed to attack. Suiciding.");
+						PrintConsole();
+						goto end_simulation;
+					}
+					else if (currenthink >= 40 && havemoved == false && OurSimulation.CurrentAverageIteration == 0)
+					{
+						PushConsoleLine("Failed to move. Suiciding.");
+						PrintConsole();
+						goto end_simulation;
+					}
+
+					if (GetAsyncKeyState(VK_DOWN) & 0x8000)
+					{
+						AllKeysUp();
+
+						std::cout << "Paused. Press UP to unpause." << endl;
+
+						while (!(GetAsyncKeyState(VK_UP) & 0x8000)) {}
+					}
+
+					long b = GetTime();
+
+					thinktime = (b - a) / 1000000.0f;
+
+					if (thinktime < OurSimulation.MinimumThinkTime)
+					{
+						Sleep((int)((OurSimulation.MinimumThinkTime - thinktime) * 1000));
+					}
+
+					if ((currenthink % 5) == 0) PrintConsole();
+				}
+
+				PushConsoleLine("Iteration finished.");
+				PrintConsole();
+
+				OurSimulation.SimulationTotalPorkchops += porknow;
+			}
+
+		end_simulation:
+
+			PushConsoleLine("Simulation finished.");
+
+			AllKeysUp();
+
+			if (OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops)
+			{
+				PushConsoleLine("Better or same cost; keeping");
+
+				OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
+				OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
+
+				SaveNetwork();
+			}
+			else
+			{
+				PushConsoleLine("Worse cost; reverting network");
+				RevertTweaks();
+			}
+
+			PrintConsole();
+
+			SaveArraysToFile();
+		}
+
+		cout << "Program finished.";
+
+		system("Pause");
+	}
+	else if (CurrentRunMode == RunMode::Performance)
+	{
+		while(true)
+		{
 			ClearInventory();
 			Suicide();
-			Sleep(2000);
-
-			screenshotted = false;
+			Sleep(1500);
 
 			ClearConsole();
 
@@ -405,34 +542,9 @@ int main()
 				CalculateLayer4();
 				CalculateOutputLayer();
 
-				if (!screenshotted)
-				{
-					TakeScreenshots();
-					screenshotted = true;
-				}
-
 				PerformOutputs();
 
 				if (HowMuchUncookedPork() > porknow) porknow = HowMuchUncookedPork(); // because it seems sometimes the function returns zero when it shouldnt; this protects the variable
-
-				if (currenthink >= 150 && porknow == 0 && OurSimulation.CurrentAverageIteration == 0)
-				{
-					PushConsoleLine("Not getting anything. Suiciding.");
-					PrintConsole();
-					goto end_simulation;
-				}
-				if (currenthink >= 50 && numtimesattacked == 0 && OurSimulation.CurrentAverageIteration == 0)
-				{
-					PushConsoleLine("Failed to attack. Suiciding.");
-					PrintConsole();
-					goto end_simulation;
-				}
-				if (currenthink >= 40 && havemoved == false && OurSimulation.CurrentAverageIteration == 0)
-				{
-					PushConsoleLine("Failed to move. Suiciding.");
-					PrintConsole();
-					goto end_simulation;
-				}
 
 				if (GetAsyncKeyState(VK_DOWN) & 0x8000)
 				{
@@ -455,40 +567,9 @@ int main()
 				if ((currenthink % 5) == 0) PrintConsole();
 			}
 
-			PushConsoleLine("Iteration finished.");
 			PrintConsole();
-
-			OurSimulation.SimulationTotalPorkchops += porknow;
+			AllKeysUp();
 		}
-
-	end_simulation:
-
-		PushConsoleLine("Simulation finished.");
-
-		AllKeysUp();
-
-		if(OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops)
-		{
-			PushConsoleLine("Better or same cost; keeping");
-
-			OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
-			OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
-
-			SaveNetwork();
-		}
-		else
-		{
-			PushConsoleLine("Worse cost; reverting network");
-			RevertTweaks();
-		}
-
-		PrintConsole();
-
-		SaveArraysToFile();
 	}
-
-	cout << "Program finished."; 
-
-	system("Pause");
 }
 

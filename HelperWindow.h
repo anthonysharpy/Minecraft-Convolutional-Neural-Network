@@ -138,7 +138,7 @@ void CreateHelperWindow()
 
     // Create the window.
 
-    HWND hwnd = CreateWindowEx(
+    _Post_ _Notnull_ HWND hwnd = CreateWindowEx(
         NULL,                              // Optional window styles.
         CLASS_NAME,                     // Window class
         L"Minecraft Bot Helper Window",    // Window text
@@ -153,10 +153,10 @@ void CreateHelperWindow()
         NULL        // Additional application data
     );
 
-    if (hwnd == NULL)
+    if (!hwnd)
     {
         MessageBox(NULL, L"FAILED TO CREATE HELPER WINDOW", L"ERROR", MB_OK);
-        //return;
+        return;
     }
 
     ShowWindow(hwnd, SW_SHOW);
