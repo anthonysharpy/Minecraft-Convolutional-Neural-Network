@@ -398,7 +398,7 @@ int main()
 			timestweaked = 0;
 			timesnottweaked = 0;
 
-			TweakChance = 1.0f * pow(0.96f, OurSimulation.BestNumberofPorkchops);
+			TweakChance = (float)(1.0 * pow(0.96f, OurSimulation.BestNumberofPorkchops));
 			TweakStuff(TweakChance, 1.1f);
 
 			OurSimulation.SimulationTotalPorkchops = 0;

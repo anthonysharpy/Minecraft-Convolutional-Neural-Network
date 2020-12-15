@@ -148,10 +148,12 @@ unsigned long xorshf96()
 	return z;
 }
 
+unsigned int seed = (unsigned int)std::chrono::system_clock::now().time_since_epoch().count();
+
 /* Seed */
 std::random_device rd;
 /* Random number generator */
-std::default_random_engine generator(rd());
+std::default_random_engine generator(seed);
 /* Distribution on which to apply the generator */
 std::uniform_int_distribution<long long unsigned> distribution(0, 0xFFFFFFFFFFFF);
 

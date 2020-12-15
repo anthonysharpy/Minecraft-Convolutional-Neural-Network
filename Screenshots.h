@@ -16,7 +16,7 @@ void Screenshot1DArray(RGBQUADFLOAT* map, int width, int height, string filename
 		}
 	}
 
-	string name = "C:/Users/Anthony/Desktop/MinecraftBot/x64/Debug/screenshots/" + filename + ".bmp";
+	string name = "C:/Users/antho/Desktop/MinecraftBot/x64/Debug/screenshots/" + filename + ".bmp";
 	image.WriteToFile(name.c_str());
 }
 
@@ -36,7 +36,7 @@ void ScreenshotInput(string filename)
 		}
 	}
 
-	string name = "C:/Users/Anthony/Desktop/MinecraftBot/x64/Debug/screenshots/" + filename + ".bmp";
+	string name = "C:/Users/antho/Desktop/MinecraftBot/x64/Debug/screenshots/" + filename + ".bmp";
 	image.WriteToFile(name.c_str());
 }
 
@@ -59,7 +59,7 @@ void ScreenshotPooledStuff()
 			}
 		}
 
-		string name = "C:/Users/Anthony/Desktop/MinecraftBot/x64/Debug/screenshots/layer2pooled_" + to_string(f) + ".bmp";
+		string name = "C:/Users/antho/Desktop/MinecraftBot/x64/Debug/screenshots/layer2pooled_" + to_string(f) + ".bmp";
 		image.WriteToFile(name.c_str());
 	}
 }
