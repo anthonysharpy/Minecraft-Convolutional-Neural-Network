@@ -24,6 +24,7 @@ void PrintConsole() // Print a fresh console with all the bells and whistles
 	cout << "Simulation " << OurSimulation.CurrentNumberofSimulations << "/" << OurSimulation.GoalNumberofSimulations << ". Think " << currenthink << "/" << OurSimulation.ThinksPerSimulation << " (" << thinktime << "s). Average Iteration " << (OurSimulation.CurrentAverageIteration+1) << "/" << OurSimulation.AverageAlgorithmTries << ". TweakChance = " << TweakChance*100.0f << "%" << endl;
 	cout << "Layer1FilterSum: " << GetFilterWeightsSum(1) << endl;
 	cout << "Current simulation porkchops: " << OurSimulation.SimulationTotalPorkchops << +"(+" << HowMuchUncookedPork() << + ")" << ". Best number: " << OurSimulation.BestNumberofPorkchops << " (achieved at simulation " << OurSimulation.BestAchievedAtIteration << ")" << endl;
+	cout << "Handicap: " << GetPorkHandicap() << ". Goal pork: " << OurSimulation.BestNumberofPorkchops - GetPorkHandicap();
 
 	cout << consoleadditives;
 }

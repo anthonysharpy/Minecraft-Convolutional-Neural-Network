@@ -493,7 +493,7 @@ int main()
 
 			AllKeysUp();
 
-			if (OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops)
+			if (OurSimulation.SimulationTotalPorkchops >= (OurSimulation.BestNumberofPorkchops-GetPorkHandicap()))
 			{
 				PushConsoleLine("Better or same cost; keeping");
 
