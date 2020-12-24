@@ -7,6 +7,8 @@ extern int failsinarow;
 extern int currenthink;
 extern float TweakChance;
 
+extern int GetPorkHandicap();
+
 void PushConsoleLine(string line)
 {
 	consoleadditives = consoleadditives + (line + "\n");

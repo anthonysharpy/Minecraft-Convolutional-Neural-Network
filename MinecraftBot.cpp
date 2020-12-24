@@ -368,6 +368,11 @@ void GetRunMode()
 	}
 }
 
+int GetPorkHandicap() // after a while, the bot cant improve. give it a handicap every 1000 iterations so that it can eventually reach it.
+{
+	return (int)floor((OurSimulation.CurrentNumberofSimulations - OurSimulation.BestAchievedAtIteration) / 1000.0f);
+}
+
 int main()
 {
 	hWnd = FindWindowA(NULL, "Minecraft 1.16.4 - Singleplayer");

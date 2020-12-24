@@ -212,11 +212,6 @@ inline RGBQUADFLOAT RectifiedLinearUnitFunctionRGB(RGBQUADFLOAT x)
 	return returnv;
 }
 
-int GetPorkHandicap() // after a while, the bot cant improve. give it a handicap every 1000 iterations so that it can eventually reach it.
-{
-	return floor((OurSimulation.CurrentNumberofSimulations - OurSimulation.BestAchievedAtIteration) / 1000.0f);
-}
-
 inline float Max(float a, float b, float c, float d)
 {
 	float* biggest = &a;
