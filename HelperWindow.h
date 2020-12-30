@@ -89,7 +89,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         TextOut(hdc, 15, 75, biases.c_str(), (int)biases.length());
         TextOut(hdc, 15, 90, vals.c_str(), (int)vals.length());
 
-        wstring tweakrate = L"TWEAK RATE = " + to_wstring((float)timestweaked / (timestweaked + timesnottweaked) *100.0f) + L"%";
+        wstring tweakrate = L"ACTUAL TWEAK RATE = " + to_wstring((float)timestweaked / (timestweaked + timesnottweaked) *100.0f) + L"%";
         TextOut(hdc, 15, 200, tweakrate.c_str(), (int)tweakrate.length());
 
         EndPaint(hwnd, &ps);
