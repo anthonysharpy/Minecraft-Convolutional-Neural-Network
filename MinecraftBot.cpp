@@ -498,6 +498,9 @@ int main()
 
 			PushConsoleLine("Simulation finished.");
 
+			// lol
+			Sleep(100);
+			AllKeysUp();
 			AllKeysUp();
 
 			if (OurSimulation.SimulationTotalPorkchops >= (OurSimulation.BestNumberofPorkchops-GetPorkHandicap()))
