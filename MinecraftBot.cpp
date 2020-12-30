@@ -373,6 +373,8 @@ int GetPorkHandicap() // after a while, the bot cant improve. give it a handicap
 	return (int)floor((OurSimulation.CurrentNumberofSimulations - OurSimulation.BestAchievedAtIteration) / 1000.0f);
 }
 
+extern float GetRandomNumber(double, double);
+
 int main()
 {
 	hWnd = FindWindowA(NULL, "Minecraft 1.16.4 - Singleplayer");
@@ -403,7 +405,9 @@ int main()
 			timestweaked = 0;
 			timesnottweaked = 0;
 
-			TweakChance = (float)(1.0 * pow(0.96f, OurSimulation.BestNumberofPorkchops));
+			float MaxTweakChance = (float)(1.0 * pow(0.96f, OurSimulation.BestNumberofPorkchops));
+
+			TweakChance = GetRandomNumber(0.0, 1.0) * (float)(1.0 * pow(0.96f, OurSimulation.BestNumberofPorkchops));
 			TweakStuff(TweakChance, 1.1f);
 
 			OurSimulation.SimulationTotalPorkchops = 0;
