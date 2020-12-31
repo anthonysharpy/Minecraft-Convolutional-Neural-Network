@@ -448,7 +448,7 @@ int main()
 
 					if (HowMuchUncookedPork() > porknow) porknow = HowMuchUncookedPork(); // because it seems sometimes the function returns zero when it shouldnt; this protects the variable
 
-					if (currenthink >= 150 && porknow == 0 && OurSimulation.CurrentAverageIteration == 0)
+					if (currenthink >= 150 && porknow == 0)
 					{
 						PushConsoleLine("Not getting anything. Suiciding.");
 						PrintConsole();
