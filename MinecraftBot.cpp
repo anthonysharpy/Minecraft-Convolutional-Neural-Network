@@ -375,10 +375,7 @@ int GetPorkHandicap() // after a while, the bot cant improve. give it a handicap
 
 extern float GetRandomNumber(double, double);
 
-int GetProgressDebt()
-{
-	return (int)(((OurSimulation.BestNumberofPorkchops / 4.0f) * (OurSimulation.CurrentAverageIteration + 1.0f)) - (OurSimulation.SimulationTotalPorkchops+HowMuchUncookedPork()));
-}
+int porknow = 0;
 
 int main()
 {
@@ -428,7 +425,7 @@ int main()
 
 				ClearConsole();
 
-				int porknow = 0;
+				porknow = 0;
 
 				for (currenthink = 0; currenthink < OurSimulation.ThinksPerSimulation; currenthink++)
 				{
@@ -589,3 +586,7 @@ int main()
 	}
 }
 
+int GetProgressDebt()
+{
+	return (int)(((OurSimulation.BestNumberofPorkchops / 4.0f) * (OurSimulation.CurrentAverageIteration + 1.0f)) - (OurSimulation.SimulationTotalPorkchops + porknow));
+}
