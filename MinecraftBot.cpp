@@ -377,7 +377,7 @@ extern float GetRandomNumber(double, double);
 
 int GetProgressDebt()
 {
-	return (int)(((OurSimulation.BestNumberofPorkchops / 4.0f) * (OurSimulation.CurrentAverageIteration + 1.0f)) - OurSimulation.SimulationTotalPorkchops);
+	return (int)(((OurSimulation.BestNumberofPorkchops / 4.0f) * (OurSimulation.CurrentAverageIteration + 1.0f)) - (OurSimulation.SimulationTotalPorkchops+HowMuchUncookedPork()));
 }
 
 int main()
