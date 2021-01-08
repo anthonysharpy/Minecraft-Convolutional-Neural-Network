@@ -425,8 +425,6 @@ int main()
 
 				ClearConsole();
 
-				porknow = 0;
-
 				for (currenthink = 0; currenthink < OurSimulation.ThinksPerSimulation; currenthink++)
 				{
 					long a = GetTime();
@@ -496,8 +494,9 @@ int main()
 				AllKeysUp();
 
 				OurSimulation.SimulationTotalPorkchops += porknow;
+				porknow = 0;
 
-				if (GetProgressDebt() > 10) goto end_simulation;
+				if (GetProgressDebt() >= 10) goto end_simulation;
 			}
 
 		end_simulation:
