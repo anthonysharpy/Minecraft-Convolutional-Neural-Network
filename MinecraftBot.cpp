@@ -375,6 +375,11 @@ int GetPorkHandicap() // after a while, the bot cant improve. give it a handicap
 
 extern float GetRandomNumber(double, double);
 
+int GetProgressDebt()
+{
+	return (int)(((OurSimulation.BestNumberofPorkchops / 4.0f) * (OurSimulation.CurrentAverageIteration + 1.0f)) - OurSimulation.SimulationTotalPorkchops);
+}
+
 int main()
 {
 	hWnd = FindWindowA(NULL, "Minecraft 1.16.4 - Singleplayer");
@@ -494,6 +499,8 @@ int main()
 				AllKeysUp();
 
 				OurSimulation.SimulationTotalPorkchops += porknow;
+
+				if (GetProgressDebt() > 10) goto end_simulation;
 			}
 
 		end_simulation:
