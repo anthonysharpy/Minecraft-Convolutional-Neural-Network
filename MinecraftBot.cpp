@@ -425,6 +425,12 @@ int main()
 
 			for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
 			{
+				if (OurSimulation.CurrentAverageIteration > 0 && GetProgressDebt() >= 10)
+				{
+					PushConsoleLine("Progress debt unrealistically high. Ending simulation.");
+					goto end_simulation;
+				}
+
 				numtimesattacked = 0;
 				havemoved = false;
 				havemovedmouse = false;
@@ -459,25 +465,25 @@ int main()
 
 					if (currenthink >= 150 && porknow == 0)
 					{
-						PushConsoleLine("Not getting anything. Suiciding.");
+						PushConsoleLine("Not getting anything. Ending simulation.");
 						PrintConsole();
 						goto end_simulation;
 					}
 					else if (currenthink >= 100 && numtimesattacked == 0)
 					{
-						PushConsoleLine("Failed to attack. Suiciding.");
+						PushConsoleLine("Failed to attack. Ending simulation.");
 						PrintConsole();
 						goto end_simulation;
 					}
 					else if (currenthink >= 50 && havemoved == false)
 					{
-						PushConsoleLine("Failed to move. Suiciding.");
+						PushConsoleLine("Failed to move. Ending simulation.");
 						PrintConsole();
 						goto end_simulation;
 					}
 					else if (currenthink >= 50 && havemovedmouse == false)
 					{
-						PushConsoleLine("Failed to move mouse. Suiciding.");
+						PushConsoleLine("Failed to move mouse. Ending simulation.");
 						PrintConsole();
 						goto end_simulation;
 					}
@@ -510,8 +516,6 @@ int main()
 
 				OurSimulation.SimulationTotalPorkchops += porknow;
 				porknow = 0;
-
-				if (GetProgressDebt() >= 10) goto end_simulation;
 			}
 
 		end_simulation:
