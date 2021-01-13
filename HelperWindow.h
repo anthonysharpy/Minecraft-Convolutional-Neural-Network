@@ -21,10 +21,31 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
 
-        // draw output image
-
         Gdiplus::Graphics graphics(hdc);
         // Create an Image object.
+
+        // draw layer 2 image
+
+        Gdiplus::Bitmap b3(238, 148, PixelFormat24bppRGB);
+
+        for (int y = 0; y < 148; y++)
+        {
+            for (int x = 0; x < 238; x++)
+            {
+                b3.SetPixel(x, 148 - y, Gdiplus::Color((BYTE)1, (int)Layer2PooledOutput[x + (y * 238)].rgbRed,
+                    (int)Layer2PooledOutput[x + (y * 238)].rgbGreen,
+                    (int)Layer2PooledOutput[x + (y * 238)].rgbBlue));
+            }
+        }
+
+        Gdiplus::Status res = graphics.DrawImage(&b3, 1300, 50);
+
+        if (res != Gdiplus::Status::Ok)
+        {
+            MessageBox(NULL, L"FAILED TO DRAW OUTPUT IMAGE 2", L"ERROR", MB_OK);
+        }
+
+        // draw layer 3 image
 
         Gdiplus::Bitmap b(118, 73, PixelFormat24bppRGB);
 
@@ -32,20 +53,61 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
             for (int x = 0; x < 118; x++)
             {
-                b.SetPixel(x, 72-y, Gdiplus::Color((BYTE)1, (int)Layer3PooledActivationMaps[0][x + (y * 118)].rgbRed,
-                    (int)Layer3PooledActivationMaps[0][x + (y * 118)].rgbGreen,
-                    (int)Layer3PooledActivationMaps[0][x + (y * 118)].rgbBlue));
+                b.SetPixel(x, 72-y, Gdiplus::Color((BYTE)1, (int)Layer3PooledOutput[x + (y * 118)].rgbRed,
+                    (int)Layer3PooledOutput[x + (y * 118)].rgbGreen,
+                    (int)Layer3PooledOutput[x + (y * 118)].rgbBlue));
             }
         }
 
-        Gdiplus::Status res = graphics.DrawImage(&b, 1200, 50);
+        res = graphics.DrawImage(&b, 1300 + 10 + 238, 50);
 
         if (res != Gdiplus::Status::Ok)
         {
-            MessageBox(NULL, L"FAILED TO DRAW OUTPUT IMAGE", L"ERROR", MB_OK);
+            MessageBox(NULL, L"FAILED TO DRAW OUTPUT IMAGE 3", L"ERROR", MB_OK);
         }
 
+        // draw layer 4 image
+
+        Gdiplus::Bitmap b2(58, 35, PixelFormat24bppRGB);
+
+        for (int y = 0; y < 35; y++)
+        {
+            for (int x = 0; x < 58; x++)
+            {
+                b2.SetPixel(x, 35 - y, Gdiplus::Color((BYTE)1, (int)Layer4PooledOutput[x + (y * 58)].rgbRed,
+                    (int)Layer4PooledOutput[x + (y * 58)].rgbGreen,
+                    (int)Layer4PooledOutput[x + (y * 58)].rgbBlue));
+            }
+        }
+
+        res = graphics.DrawImage(&b2, 1300 + 10 + 238 + 10 + 118, 50);
+
+        if (res != Gdiplus::Status::Ok)
+        {
+            MessageBox(NULL, L"FAILED TO DRAW OUTPUT IMAGE 4", L"ERROR", MB_OK);
+        }
         
+        // draw layer 5 image
+
+        Gdiplus::Bitmap b4(28, 16, PixelFormat24bppRGB);
+
+        for (int y = 0; y < 16; y++)
+        {
+            for (int x = 0; x < 28; x++)
+            {
+                b4.SetPixel(x, 16 - y, Gdiplus::Color((BYTE)1, (int)Layer5PooledOutput[x + (y * 28)].rgbRed,
+                    (int)Layer5PooledOutput[x + (y * 28)].rgbGreen,
+                    (int)Layer5PooledOutput[x + (y * 28)].rgbBlue));
+            }
+        }
+
+        res = graphics.DrawImage(&b4, 1300 + 10 + 238 + 10 + 118 + 10 + 58, 50);
+
+        if (res != Gdiplus::Status::Ok)
+        {
+            MessageBox(NULL, L"FAILED TO DRAW OUTPUT IMAGE 5", L"ERROR", MB_OK);
+        }
+
         // All painting occurs here, between BeginPaint and EndPaint.
 
         TextOut(hdc, 85, 10, L"W                        S                         A                         D                       Jump                   Attack              MouseLeft           MouseRight        MouseDown        MouseUp", 207);
@@ -62,32 +124,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             else FillRect(hdc, &r2, (HBRUSH)(COLOR_DESKTOP + 1));
         }
 
-        wstring vals = L"VAL: " +
-            to_wstring(OutputNeurons[0]) + L"     " +
-            to_wstring(OutputNeurons[1]) + L"     " +
-            to_wstring(OutputNeurons[2]) + L"     " +
-            to_wstring(OutputNeurons[3]) + L"      " +
-            to_wstring(OutputNeurons[4]) + L"   " +
-            to_wstring(OutputNeurons[5]) + L"    " +
-            to_wstring(OutputNeurons[6]) + L"     " +
-            to_wstring(OutputNeurons[7]) + L"     " +
-            to_wstring(OutputNeurons[8]) + L"     " +
-            to_wstring(OutputNeurons[9]) + L"     ";
+        // output layer values text 
 
-        wstring biases = L"BIAS: " +
-            to_wstring(OutputBiases[0]) + L"        " +
-            to_wstring(OutputBiases[1]) + L"           " +
-            to_wstring(OutputBiases[2]) + L"         " +
-            to_wstring(OutputBiases[3]) + L"           " +
-            to_wstring(OutputBiases[4]) + L"          " +
-            to_wstring(OutputBiases[5]) + L"          " +
-            to_wstring(OutputBiases[6]) + L"         " +
-            to_wstring(OutputBiases[7]) + L"          " +
-            to_wstring(OutputBiases[8]) + L"         " +
-            to_wstring(OutputBiases[9]) + L"         ";
+        TextOut(hdc, 15, 90, L"VAL: ", 6);
 
-        TextOut(hdc, 15, 75, biases.c_str(), (int)biases.length());
-        TextOut(hdc, 15, 90, vals.c_str(), (int)vals.length());
+        for (int i = 0; i < 10; i++)
+        {
+            wstring strn = to_wstring(OutputNeurons[i]);
+            TextOut(hdc, 75 + (110*i), 90, strn.c_str(), (int)strn.length());
+        }
+
+        // output layer biases text 
+
+        TextOut(hdc, 15, 75, L"BIAS: ", 7);
+
+        for (int i = 0; i < 10; i++)
+        {
+            wstring strn = to_wstring(OutputBiases[i]);
+            TextOut(hdc, 75 + (110 * i), 75, strn.c_str(), (int)strn.length());
+        }
 
         wstring tweakrate = L"ACTUAL TWEAK RATE = " + to_wstring((float)timestweaked / (timestweaked + timesnottweaked) *100.0f) + L"%";
         TextOut(hdc, 15, 200, tweakrate.c_str(), (int)tweakrate.length());
@@ -145,7 +200,7 @@ void CreateHelperWindow()
         WS_OVERLAPPEDWINDOW,            // Window style
 
         // Size and position
-        0, 720, 1800, 300,
+        0, 720, 1900, 300,
 
         NULL,       // Parent window    
         NULL,       // Menu

@@ -30,7 +30,8 @@ SimulationInfo OurSimulation;
 const int BotViewScreenWidth = 960;//GetSystemMetrics(SM_CXSCREEN);
 const int BotViewScreenHeight = 600;//GetSystemMetrics(SM_CYSCREEN);
 
-RGBQUAD *Pixels = new RGBQUAD[BotViewScreenWidth * BotViewScreenHeight];
+RGBQUAD* Pixels = new RGBQUAD[BotViewScreenWidth * BotViewScreenHeight];
+RGBQUADFLOAT* PixelsFloat = new RGBQUADFLOAT[BotViewScreenWidth * BotViewScreenHeight];
 
 HWND hWnd;
 
@@ -189,42 +190,42 @@ void GetPixels()
 
 int numtimesattacked = 0;
 bool havemoved = false;
+bool havemovedmouse = false;
 
-float ActivationNumber = LAYER4SIZE * 0.25;
+float ActivationNumber = LAYER10SIZE * 0.25;
 
 void PerformOutputs()
 {
 	if (OutputNeurons[0] >= ActivationNumber)
 	{
-		havemoved = true;
+		if(OutputNeurons[1] < ActivationNumber) havemoved = true; // s key not pressed
 		KeyDown("w");
 	}
 	else KeyUp("w");
 
 	if (OutputNeurons[1] >= ActivationNumber)
 	{
-		havemoved = true;
+		if (OutputNeurons[0] < ActivationNumber) havemoved = true; // w key not pressed
 		KeyDown("s");
 	}
 	else KeyUp("s");
 
 	if (OutputNeurons[2] >= ActivationNumber)
 	{
-		havemoved = true;
+		if (OutputNeurons[3] < ActivationNumber) havemoved = true; // d key not pressed
 		KeyDown("a");
 	}
 	else KeyUp("a");
 
 	if (OutputNeurons[3] >= ActivationNumber)
 	{
-		havemoved = true;
+		if (OutputNeurons[2] < ActivationNumber) havemoved = true; // a key not pressed
 		KeyDown("d");
 	}
 	else KeyUp("d");
 
 	if (OutputNeurons[4] >= ActivationNumber)
 	{
-		havemoved = true;
 		KeyDown("space");
 	}
 	else KeyUp("space");
@@ -238,25 +239,25 @@ void PerformOutputs()
 
 	if (OutputNeurons[6] >= ActivationNumber)
 	{
-		havemoved = true;
+		havemovedmouse = true;
 		MoveMouseLeft();
 	}
 
 	if (OutputNeurons[7] >= ActivationNumber)
 	{
-		havemoved = true;
+		havemovedmouse = true;
 		MoveMouseRight();
 	}
 
 	if (OutputNeurons[8] >= ActivationNumber)
 	{
-		havemoved = true;
+		havemovedmouse = true;
 		MoveMouseDown();
 	}
 
 	if (OutputNeurons[9] >= ActivationNumber)
 	{
-		havemoved = true;
+		havemovedmouse = true;
 		MoveMouseUp();
 	}
 }
@@ -307,39 +308,32 @@ void TakeScreenshots()
 
 	// input
 
-	ScreenshotInput("sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_inputpixels");
+	Screenshot1DArray(PixelsFloat, BotViewScreenWidth, BotViewScreenHeight, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_inputpixels");
 
 	// layer 1
 
-	for (int fil = 0; fil < LAYER1NUMFILTERS; fil++) // screenshot all activation maps on layer 1
-	{
-		Screenshot1DArray(Layer1ActivationMaps[fil], LAYER1WIDTH, LAYER1HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer1_activationmap_filter" + to_string(fil), 1.0f);
-	}
-
-	Screenshot1DArray(Layer1PrePoolOutput, LAYER1WIDTH, LAYER1HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer1_aPREPOOLEDOUTPUT", 1.0f);
-	Screenshot1DArray(Layer1PooledOutput, LAYER1POOLEDWIDTH, LAYER1POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer1_POOLEDOUTPUT", 1.0f);
+	Screenshot1DArray(Layer1ActivationMaps, LAYER1WIDTH, LAYER1HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer1_activationmap");
+	Screenshot1DArray(Layer1PooledOutput, LAYER1POOLEDWIDTH, LAYER1POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer1_POOLEDOUTPUT");
 
 	// layer 2
 
-	for (int fil = 0; fil < LAYER2NUMFILTERS; fil++) // screenshot all activation maps on layer 1
-	{
-		Screenshot1DArray(Layer2ActivationMaps[fil], LAYER2WIDTH, LAYER2HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer2_activationmap_filter" + to_string(fil), 1.0f);
-	}
-
-	Screenshot1DArray(Layer2PrePoolOutput, LAYER2WIDTH, LAYER2HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer2_aPREPOOLEDOUTPUT", 1.0f);
-	Screenshot1DArray(Layer2PooledOutput, LAYER2POOLEDWIDTH, LAYER2POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer2_POOLEDOUTPUT", 1.0f);
+	Screenshot1DArray(Layer2ActivationMaps, LAYER2WIDTH, LAYER2HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer2_activationmap");
+	Screenshot1DArray(Layer2PooledOutput, LAYER2POOLEDWIDTH, LAYER2POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer2_POOLEDOUTPUT");
 
 	// layer 3
 
-	for (int fil = 0; fil < LAYER3NUMFILTERS; fil++) // screenshot all activation maps on layer 3
-	{
-		Screenshot1DArray(Layer3ActivationMaps[fil], LAYER3WIDTH, LAYER3HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer3_activationmap_filter" + to_string(fil), 1.0f);
-	}
+	Screenshot1DArray(Layer3ActivationMaps, LAYER3WIDTH, LAYER3HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer3_activationmap");
+	Screenshot1DArray(Layer3PooledOutput, LAYER3POOLEDWIDTH, LAYER3POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer3_POOLEDOUTPUT");
 
-	for (int fil = 0; fil < LAYER3NUMFILTERS; fil++) // screenshot all pooled activation maps on layer 3
-	{
-		Screenshot1DArray(Layer3PooledActivationMaps[fil], LAYER3POOLEDWIDTH, LAYER3POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer3_POOLEDactivationmap_filter" + to_string(fil), 1.0f);
-	}
+	// layer 4
+
+	Screenshot1DArray(Layer4ActivationMaps, LAYER4WIDTH, LAYER4HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer4_activationmap");
+	Screenshot1DArray(Layer4PooledOutput, LAYER4POOLEDWIDTH, LAYER4POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer4_POOLEDOUTPUT");
+	
+	// layer 5
+
+	Screenshot1DArray(Layer5ActivationMaps, LAYER5WIDTH, LAYER5HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer5_activationmap");
+	Screenshot1DArray(Layer5PooledOutput, LAYER5POOLEDWIDTH, LAYER5POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer5_POOLEDOUTPUT");
 }
 
 int currenthink = 0;
@@ -368,14 +362,32 @@ void GetRunMode()
 	}
 }
 
-int GetPorkHandicap() // after a while, the bot cant improve. give it a handicap every 1000 iterations so that it can eventually reach it.
-{
-	return (int)floor((OurSimulation.CurrentNumberofSimulations - OurSimulation.BestAchievedAtIteration) / 1000.0f);
-}
-
 extern float GetRandomNumber(double, double);
 
 int porknow = 0;
+
+void ConvertRGBQUADtoRGBQUADFLOAT(RGBQUAD* inputarr, RGBQUADFLOAT* outputarr, int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		outputarr[i].reserved = (float)inputarr[i].rgbReserved;
+		outputarr[i].rgbGreen = (float)inputarr[i].rgbGreen;
+		outputarr[i].rgbRed = (float)inputarr[i].rgbRed;
+		outputarr[i].rgbBlue = (float)inputarr[i].rgbBlue;
+	}
+}
+
+void RunNetwork()
+{
+	CalculateCovolutionalLayer(Layer1Filter, BOTINPUTPIXELHEIGHT, BOTINPUTPIXELWIDTH, PixelsFloat, Layer1ActivationMaps, Layer1PooledOutput);
+	CalculateCovolutionalLayer(Layer2Filter, LAYER1POOLEDHEIGHT, LAYER1POOLEDWIDTH, Layer1PooledOutput, Layer2ActivationMaps, Layer2PooledOutput);
+	CalculateCovolutionalLayer(Layer3Filter, LAYER2POOLEDHEIGHT, LAYER2POOLEDWIDTH, Layer2PooledOutput, Layer3ActivationMaps, Layer3PooledOutput);
+	CalculateCovolutionalLayer(Layer4Filter, LAYER3POOLEDHEIGHT, LAYER3POOLEDWIDTH, Layer3PooledOutput, Layer4ActivationMaps, Layer4PooledOutput);
+	CalculateCovolutionalLayer(Layer5Filter, LAYER4POOLEDHEIGHT, LAYER4POOLEDWIDTH, Layer4PooledOutput, Layer5ActivationMaps, Layer5PooledOutput);
+
+	CalculateLayer10();
+	CalculateOutputLayer();
+}
 
 int main()
 {
@@ -396,7 +408,6 @@ int main()
 	SaveNetwork();
 
 	GetPixels();
-	ScreenshotInput("START");
 
 	bool screenshotted = false;
 
@@ -416,6 +427,7 @@ int main()
 			{
 				numtimesattacked = 0;
 				havemoved = false;
+				havemovedmouse = false;
 
 				ClearInventory();
 				Suicide();
@@ -432,11 +444,8 @@ int main()
 					ProcessMessages();
 
 					GetPixels();
-					CalculateLayer1();
-					CalculateLayer2();
-					CalculateLayer3();
-					CalculateLayer4();
-					CalculateOutputLayer();
+					ConvertRGBQUADtoRGBQUADFLOAT(Pixels, PixelsFloat, BotViewScreenHeight * BotViewScreenWidth);
+					RunNetwork();
 
 					if (!screenshotted)
 					{
@@ -454,15 +463,21 @@ int main()
 						PrintConsole();
 						goto end_simulation;
 					}
-					else if (currenthink >= 50 && numtimesattacked == 0 && OurSimulation.CurrentAverageIteration == 0)
+					else if (currenthink >= 100 && numtimesattacked == 0)
 					{
 						PushConsoleLine("Failed to attack. Suiciding.");
 						PrintConsole();
 						goto end_simulation;
 					}
-					else if (currenthink >= 40 && havemoved == false && OurSimulation.CurrentAverageIteration == 0)
+					else if (currenthink >= 50 && havemoved == false)
 					{
 						PushConsoleLine("Failed to move. Suiciding.");
+						PrintConsole();
+						goto end_simulation;
+					}
+					else if (currenthink >= 50 && havemovedmouse == false)
+					{
+						PushConsoleLine("Failed to move mouse. Suiciding.");
 						PrintConsole();
 						goto end_simulation;
 					}
@@ -505,7 +520,7 @@ int main()
 
 			AllKeysUp();
 
-			if (OurSimulation.SimulationTotalPorkchops >= (OurSimulation.BestNumberofPorkchops-GetPorkHandicap()))
+			if (OurSimulation.SimulationTotalPorkchops >= (OurSimulation.BestNumberofPorkchops))
 			{
 				PushConsoleLine("Better or same cost; keeping");
 
@@ -548,11 +563,8 @@ int main()
 				ProcessMessages();
 
 				GetPixels();
-				CalculateLayer1();
-				CalculateLayer2();
-				CalculateLayer3();
-				CalculateLayer4();
-				CalculateOutputLayer();
+				ConvertRGBQUADtoRGBQUADFLOAT(Pixels, PixelsFloat, BotViewScreenHeight*BotViewScreenWidth);
+				RunNetwork();
 
 				PerformOutputs();
 
