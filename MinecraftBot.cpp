@@ -425,7 +425,7 @@ int main()
 
 			for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
 			{
-				if (OurSimulation.CurrentAverageIteration > 0 && GetProgressDebt() >= 10)
+				if (GetProgressDebt() > (OurSimulation.BestNumberofPorkchops*0.25f)*1.5f)
 				{
 					PushConsoleLine("Progress debt unrealistically high. Ending simulation.");
 					goto end_simulation;
