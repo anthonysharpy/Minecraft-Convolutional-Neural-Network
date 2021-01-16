@@ -50,7 +50,7 @@ long GetTime()
 
 void GetPixels()
 {
-	hWnd = FindWindowA(NULL, "Minecraft 1.16.4 - Singleplayer");
+	hWnd = FindWindowA(NULL, "Minecraft 1.16.5 - Singleplayer");
 
 	HDC hdcScreen;
 	HDC hdcWindow;
@@ -391,7 +391,7 @@ void RunNetwork()
 
 int main()
 {
-	hWnd = FindWindowA(NULL, "Minecraft 1.16.4 - Singleplayer");
+	hWnd = FindWindowA(NULL, "Minecraft 1.16.5 - Singleplayer");
 
 	CreateHelperWindow();
 
