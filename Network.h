@@ -154,25 +154,6 @@ float GetSuitableMaxBiasForLayer(int layer)
 	exit(0);
 }
 
-static unsigned long x = 113456789;
-static unsigned long y = 362736069;
-static unsigned long z = 521258629;
-
-unsigned long xorshf96() 
-{
-	unsigned long t;
-	x ^= x << 16;
-	x ^= x >> 5;
-	x ^= x << 1;
-
-	t = x;
-	x = y;
-	y = z;
-	z = t ^ x ^ y;
-
-	return z;
-}
-
 unsigned int seed = (unsigned int)std::chrono::system_clock::now().time_since_epoch().count();
 
 /* Seed */
@@ -190,13 +171,6 @@ float GetRandomNumber(double from, double to)
 
 	return (float)(((double)result / 100000.0)+from);
 }
-
-	//return 0;
-
-	//long range = (long)(1000.0f*(to - from));
-	//long res = xorshf96() % range;
-	//return res / 1000.0f;
-//}
 
 inline float FastSigmoidFunction(float x)
 {
