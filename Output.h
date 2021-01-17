@@ -6,7 +6,7 @@ extern float thinktime;
 extern int failsinarow;
 extern int currenthink;
 extern float TweakChance;
-
+extern int CloseAttempts[5];
 extern int GetProgressDebt();
 
 void PushConsoleLine(string line)
@@ -27,5 +27,10 @@ void PrintConsole() // Print a fresh console with all the bells and whistles
 	cout << "Layer1FilterSum: " << GetFilterWeightsSum(1) << endl;
 	cout << "Current simulation porkchops: " << OurSimulation.SimulationTotalPorkchops << +"(+" << HowMuchUncookedPork() << + ")" << ". Best number: " << OurSimulation.BestNumberofPorkchops << " (achieved at simulation " << OurSimulation.BestAchievedAtIteration << ")" << endl;
 	cout << "Progress debt: " << GetProgressDebt() << endl;
+	cout << OurSimulation.BestNumberofPorkchops - 1 << ": " << CloseAttempts[4] << "\n";
+	cout << OurSimulation.BestNumberofPorkchops - 2 << ": " << CloseAttempts[3] << "\n";
+	cout << OurSimulation.BestNumberofPorkchops - 3 << ": " << CloseAttempts[2] << "\n";
+	cout << OurSimulation.BestNumberofPorkchops - 4 << ": " << CloseAttempts[1] << "\n";
+	cout << OurSimulation.BestNumberofPorkchops - 5 << ": " << CloseAttempts[0] << "\n";
 	cout << consoleadditives;
 }

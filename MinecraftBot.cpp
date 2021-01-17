@@ -35,6 +35,8 @@ RGBQUADFLOAT* PixelsFloat = new RGBQUADFLOAT[BotViewScreenWidth * BotViewScreenH
 
 HWND hWnd;
 
+int CloseAttempts[5];
+
 void GotoMinecraftWindow()
 {
 	SetForegroundWindow(hWnd);
@@ -524,7 +526,7 @@ int main()
 
 			AllKeysUp();
 
-			if (OurSimulation.SimulationTotalPorkchops >= (OurSimulation.BestNumberofPorkchops))
+			if (OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops)
 			{
 				PushConsoleLine("Better or same cost; keeping");
 
@@ -532,9 +534,19 @@ int main()
 				OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
 
 				SaveNetwork();
+
+				memset(CloseAttempts, 0, sizeof(CloseAttempts));
 			}
 			else
 			{
+				// close attempt counter
+				if (OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops - 5)
+				{
+					int n = OurSimulation.SimulationTotalPorkchops - OurSimulation.BestNumberofPorkchops + 5;
+
+					CloseAttempts[n]++;
+				}
+
 				PushConsoleLine("Worse cost; reverting network");
 				RevertTweaks();
 			}
