@@ -530,12 +530,12 @@ int main()
 			{
 				PushConsoleLine("Better or same cost; keeping");
 
+				if (OurSimulation.SimulationTotalPorkchops > OurSimulation.BestNumberofPorkchops) memset(CloseAttempts, 0, sizeof(CloseAttempts));
+
 				OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
 				OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
 
 				SaveNetwork();
-
-				memset(CloseAttempts, 0, sizeof(CloseAttempts));
 			}
 			else
 			{
