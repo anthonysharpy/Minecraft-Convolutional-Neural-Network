@@ -1,14 +1,3 @@
-// VERSION 1: repeats simulation. if get more than before, learns.
-// problem: hits roadblock very early
-
-// NEW VERSION: 
-// average learning
-
-// MinecraftBot.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
-// res is 300 x 260 but we combine each 4 pixels into a single square soo
-
 #pragma once
 
 #include "pch.h"
@@ -37,11 +26,25 @@ HWND hWnd;
 
 int CloseAttempts[5];
 
+HWND GUIWindowHwnd;
+
+float getpixelstime;
+float pixelconverttime;
+float networkruntime;
+float processmessagetime;
+float invalidaterecttime;
+float drawimagestime;
+float drawtexttime;
+
+bool imagedrawdirty;
+bool textdrawdirty;
+bool otherdrawdirty;
+
 void GotoMinecraftWindow()
 {
 	SetForegroundWindow(hWnd);
 	SetActiveWindow(hWnd);
-	SetWindowPos(hWnd, HWND_TOP, 950, 50, (BotViewScreenWidth) + 16, (BotViewScreenHeight) + 39, NULL);
+	SetWindowPos(hWnd, HWND_TOP, 950, 0, (BotViewScreenWidth) + 16, (BotViewScreenHeight) + 39, NULL);
 }
 
 long GetTime()
@@ -395,7 +398,7 @@ int main()
 {
 	hWnd = FindWindowA(NULL, "Minecraft 1.16.5 - Singleplayer");
 
-	CreateHelperWindow();
+	GUIWindowHwnd = CreateHelperWindow();
 
 	GotoMinecraftWindow();
 
@@ -417,6 +420,8 @@ int main()
 	{
 		for (; OurSimulation.CurrentNumberofSimulations < OurSimulation.GoalNumberofSimulations; OurSimulation.CurrentNumberofSimulations++)
 		{
+			otherdrawdirty = true;
+
 			timestweaked = 0;
 			timesnottweaked = 0;
 
@@ -449,11 +454,21 @@ int main()
 				{
 					long a = GetTime();
 
+					long preprocessmessages = GetTime();
 					ProcessMessages();
+					long postprocessmessages = GetTime();
 
+					long prepixels = GetTime();
 					GetPixels();
+					long postpixels = GetTime();
+
+					long preconvert = GetTime();
 					ConvertRGBQUADtoRGBQUADFLOAT(Pixels, PixelsFloat, BotViewScreenHeight * BotViewScreenWidth);
+					long postconvert = GetTime();
+
+					long prerun = GetTime();
 					RunNetwork();
+					long postrun = GetTime();
 
 					if (!screenshotted)
 					{
@@ -499,16 +514,60 @@ int main()
 						while (!(GetAsyncKeyState(VK_UP) & 0x8000)) {}
 					}
 
+					getpixelstime = (postpixels-prepixels) / 1000000.0f;
+					pixelconverttime = (postconvert-preconvert) / 1000000.0f;
+					networkruntime = (postrun-prerun) / 1000000.0f;
+					processmessagetime = (postprocessmessages - preprocessmessages) / 1000000.0f;
+
+					if ((currenthink % 5) == 0)
+					{
+						PrintConsole();
+						RECT r;
+						r.left = 0;
+						r.right = 860;
+						r.top = 420;
+						r.bottom = 0;
+
+						long preinvalidaterect = GetTime();
+						// Re-draw text only
+						textdrawdirty = true;
+						InvalidateRect(GUIWindowHwnd, &r, FALSE);
+
+						r.left = 860;
+						r.right = 1900;
+						r.top = 420;
+						r.bottom = 0;
+						// Re-draw images
+						imagedrawdirty = true;
+						InvalidateRect(GUIWindowHwnd, &r, FALSE);
+						long postinvalidaterect = GetTime();
+
+						invalidaterecttime = (postinvalidaterect - preinvalidaterect) / 1000000.0f;
+					}
+					else
+					{
+						RECT r;
+						r.left = 860;
+						r.right = 1900;
+						r.top = 420;
+						r.bottom = 0;
+						// Re-draw images
+						long preinvalidaterect = GetTime();
+						imagedrawdirty = true;
+						InvalidateRect(GUIWindowHwnd, &r, FALSE);
+						long postinvalidaterect = GetTime();
+
+						invalidaterecttime = (postinvalidaterect - preinvalidaterect) / 1000000.0f;
+					}
+
 					long b = GetTime();
 
 					thinktime = (b - a) / 1000000.0f;
 
 					if (thinktime < OurSimulation.MinimumThinkTime)
 					{
-						Sleep((int)((OurSimulation.MinimumThinkTime - thinktime) * 1000));
+						Sleep((OurSimulation.MinimumThinkTime - thinktime) * 1000.0f);
 					}
-
-					if ((currenthink % 5) == 0) PrintConsole();
 				}
 
 				PushConsoleLine("Iteration finished.");
@@ -530,12 +589,12 @@ int main()
 			{
 				PushConsoleLine("Better or same cost; keeping");
 
+				if (OurSimulation.SimulationTotalPorkchops > OurSimulation.BestNumberofPorkchops) memset(CloseAttempts, 0, sizeof(CloseAttempts));
+
 				OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
 				OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
 
 				SaveNetwork();
-
-				memset(CloseAttempts, 0, sizeof(CloseAttempts));
 			}
 			else
 			{

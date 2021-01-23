@@ -8,148 +8,225 @@
 extern float ActivationNumber;
 
 ULONG_PTR gdiplusToken;
-Gdiplus::Bitmap* b;
+
+float ClampFloat0(float n)
+{
+    if (n < 0) return 0;
+    return n;
+}
+
+float GetFilterStrengthScaleFactor()
+{
+    float highest = 0.0f;
+
+    for (int i = 0; i < 9; i++)
+    {
+        if (Layer1Filter.OurFilter.Weights[i].redWeight > highest) 
+            highest = Layer1Filter.OurFilter.Weights[i].redWeight;
+        if (Layer1Filter.OurFilter.Weights[i].greenWeight > highest)
+            highest = Layer1Filter.OurFilter.Weights[i].greenWeight;
+        if (Layer1Filter.OurFilter.Weights[i].blueWeight > highest)
+            highest = Layer1Filter.OurFilter.Weights[i].blueWeight;
+
+        if (Layer2Filter.OurFilter.Weights[i].redWeight > highest)
+            highest = Layer2Filter.OurFilter.Weights[i].redWeight;
+        if (Layer2Filter.OurFilter.Weights[i].greenWeight > highest)
+            highest = Layer2Filter.OurFilter.Weights[i].greenWeight;
+        if (Layer2Filter.OurFilter.Weights[i].blueWeight > highest)
+            highest = Layer2Filter.OurFilter.Weights[i].blueWeight;
+
+        if (Layer3Filter.OurFilter.Weights[i].redWeight > highest)
+            highest = Layer3Filter.OurFilter.Weights[i].redWeight;
+        if (Layer3Filter.OurFilter.Weights[i].greenWeight > highest)
+            highest = Layer3Filter.OurFilter.Weights[i].greenWeight;
+        if (Layer3Filter.OurFilter.Weights[i].blueWeight > highest)
+            highest = Layer3Filter.OurFilter.Weights[i].blueWeight;
+
+        if (Layer4Filter.OurFilter.Weights[i].redWeight > highest)
+            highest = Layer4Filter.OurFilter.Weights[i].redWeight;
+        if (Layer4Filter.OurFilter.Weights[i].greenWeight > highest)
+            highest = Layer4Filter.OurFilter.Weights[i].greenWeight;
+        if (Layer4Filter.OurFilter.Weights[i].blueWeight > highest)
+            highest = Layer4Filter.OurFilter.Weights[i].blueWeight;
+
+        if (Layer5Filter.OurFilter.Weights[i].redWeight > highest)
+            highest = Layer5Filter.OurFilter.Weights[i].redWeight;
+        if (Layer5Filter.OurFilter.Weights[i].greenWeight > highest)
+            highest = Layer5Filter.OurFilter.Weights[i].greenWeight;
+        if (Layer5Filter.OurFilter.Weights[i].blueWeight > highest)
+            highest = Layer5Filter.OurFilter.Weights[i].blueWeight;
+    }
+
+    return highest;
+}
+
+inline void DrawFilter(int posx, int posy, FilterRGBGroup filter, Gdiplus::Graphics* graphicsobj)
+{
+    float scalefactor = GetFilterStrengthScaleFactor();
+
+    for (int x = 0; x < 3; x++)
+    {
+        for (int y = 0; y < 3; y++)
+        {
+            Gdiplus::SolidBrush* redbrush = new Gdiplus::SolidBrush(Gdiplus::Color(
+                (BYTE)(ClampFloat0(filter.OurFilter.Weights[x + (y * 3)].redWeight / scalefactor) * 255.0f), 0, 0));
+
+            graphicsobj->FillRectangle(redbrush,
+                Gdiplus::Rect(posx + (x * 10), posy + (y * 10), 10, 10));
+
+            Gdiplus::SolidBrush* greenbrush = new Gdiplus::SolidBrush(Gdiplus::Color(
+                0, (BYTE)(ClampFloat0(filter.OurFilter.Weights[x + (y * 3)].greenWeight / scalefactor) * 255.0f), 0));
+
+            graphicsobj->FillRectangle(greenbrush,
+                Gdiplus::Rect(posx + (x * 10), posy + (y * 10) + 40, 10, 10));
+
+            Gdiplus::SolidBrush* bluebrush = new Gdiplus::SolidBrush(Gdiplus::Color(
+                0, 0, (BYTE)(ClampFloat0(filter.OurFilter.Weights[x + (y * 3)].blueWeight / scalefactor) * 255.0f)));
+
+            graphicsobj->FillRectangle(bluebrush,
+                Gdiplus::Rect(posx + (x * 10), posy + (y * 10) + 80, 10, 10));
+        }
+    }
+}
+
+inline void DrawLayerOutputImage(int xpos, int ypos, int sizex, int sizey, RGBQUADFLOAT* imagearray, Gdiplus::Graphics* graphicsobj)
+{
+    Gdiplus::Bitmap b(sizex, sizey, PixelFormat24bppRGB);
+
+    for (int y = 0; y < sizey; y++)
+    {
+        for (int x = 0; x < sizex; x++)
+        {
+            b.SetPixel(x, sizey - y, Gdiplus::Color((BYTE)255, (int)imagearray[x + (y * sizex)].rgbRed,
+                (int)imagearray[x + (y * sizex)].rgbGreen,
+                (int)imagearray[x + (y * sizex)].rgbBlue));
+        }
+    }
+
+    graphicsobj->DrawImage(&b, xpos, ypos);
+}
+
+inline void DrawText(int xpos, int ypos, LPCWSTR text, int strlen, Gdiplus::Graphics* graphicsobj)
+{
+    Gdiplus::FontFamily fontFamily(L"Times New Roman");
+    Gdiplus::Font font(&fontFamily, 14, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
+    Gdiplus::SolidBrush solidBrush(Gdiplus::Color(255, 0, 0, 0));
+    graphicsobj->DrawString(text, strlen, &font, Gdiplus::PointF(xpos, ypos), &solidBrush);
+}
+
+inline void DrawNeuron(int xpos, int ypos, wstring label, HDC* hdc, bool on, float value, float bias, Gdiplus::Graphics* graphicsobj)
+{
+    // Draw label
+    DrawText(xpos, ypos, label.c_str(), label.length(), graphicsobj);
+
+    // Draw square
+    RECT r;
+    r.left = xpos;
+    r.right = xpos+30;
+    r.top = ypos+20;
+    r.bottom = ypos+50;
+
+    if (on) FillRect(*hdc, &r, (HBRUSH)(COLOR_BTNFACE + 1));
+    else FillRect(*hdc, &r, (HBRUSH)(COLOR_DESKTOP + 1));
+    
+    // Draw value text
+    wstring strn = to_wstring((int)value);
+    DrawText(xpos, ypos + 80, strn.c_str(), (int)strn.length(), graphicsobj);
+    
+    // Draw bias text
+    strn = to_wstring((int)bias);
+    DrawText(xpos, ypos+100, strn.c_str(), (int)strn.length(), graphicsobj);
+}
+
+inline void ClearScreen(Gdiplus::Graphics* graphicsobj)
+{
+    Gdiplus::SolidBrush* whitebrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 255, 255));
+
+    graphicsobj->FillRectangle(whitebrush,
+        Gdiplus::Rect(0, 0, 900, 250));
+}
+
+extern bool imagedrawdirty;
+extern bool otherdrawdirty;
+extern bool textdrawdirty;
+extern float drawimagestime;
+extern float drawtexttime;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    InvalidateRect(hwnd, NULL, TRUE);
-
     switch (uMsg)
     {
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
-
         Gdiplus::Graphics graphics(hdc);
-        // Create an Image object.
 
-        // draw layer 2 image
+        ClearScreen(&graphics);
 
-        Gdiplus::Bitmap b3(238, 148, PixelFormat24bppRGB);
-
-        for (int y = 0; y < 148; y++)
+        if (otherdrawdirty)
         {
-            for (int x = 0; x < 238; x++)
-            {
-                b3.SetPixel(x, 148 - y, Gdiplus::Color((BYTE)1, (int)Layer2PooledOutput[x + (y * 238)].rgbRed,
-                    (int)Layer2PooledOutput[x + (y * 238)].rgbGreen,
-                    (int)Layer2PooledOutput[x + (y * 238)].rgbBlue));
-            }
+            // Draw filters
+            DrawFilter(40, 250, Layer1Filter, &graphics);
+            DrawFilter(100, 250, Layer2Filter, &graphics);
+            DrawFilter(160, 250, Layer3Filter, &graphics);
+            DrawFilter(220, 250, Layer4Filter, &graphics);
+            DrawFilter(280, 250, Layer5Filter, &graphics);
+
+            // Tweak rate output
+            wstring tweakrate = L"ACTUAL TWEAK RATE = " + to_wstring((float)timestweaked / (timestweaked + timesnottweaked) * 100.0f) + L"%";
+            DrawText(15, 200, tweakrate.c_str(), (int)tweakrate.length(), &graphics);
+
+            otherdrawdirty = false;
         }
 
-        Gdiplus::Status res = graphics.DrawImage(&b3, 1300, 50);
-
-        if (res != Gdiplus::Status::Ok)
+        if (imagedrawdirty)
         {
-            MessageBox(NULL, L"FAILED TO DRAW OUTPUT IMAGE 2", L"ERROR", MB_OK);
-        }
+            long predrawimages = GetTime();
 
-        // draw layer 3 image
-
-        Gdiplus::Bitmap b(118, 73, PixelFormat24bppRGB);
-
-        for (int y = 0; y < 73; y++)
-        {
-            for (int x = 0; x < 118; x++)
-            {
-                b.SetPixel(x, 72-y, Gdiplus::Color((BYTE)1, (int)Layer3PooledOutput[x + (y * 118)].rgbRed,
-                    (int)Layer3PooledOutput[x + (y * 118)].rgbGreen,
-                    (int)Layer3PooledOutput[x + (y * 118)].rgbBlue));
-            }
-        }
-
-        res = graphics.DrawImage(&b, 1300 + 10 + 238, 50);
-
-        if (res != Gdiplus::Status::Ok)
-        {
-            MessageBox(NULL, L"FAILED TO DRAW OUTPUT IMAGE 3", L"ERROR", MB_OK);
-        }
-
-        // draw layer 4 image
-
-        Gdiplus::Bitmap b2(58, 35, PixelFormat24bppRGB);
-
-        for (int y = 0; y < 35; y++)
-        {
-            for (int x = 0; x < 58; x++)
-            {
-                b2.SetPixel(x, 35 - y, Gdiplus::Color((BYTE)1, (int)Layer4PooledOutput[x + (y * 58)].rgbRed,
-                    (int)Layer4PooledOutput[x + (y * 58)].rgbGreen,
-                    (int)Layer4PooledOutput[x + (y * 58)].rgbBlue));
-            }
-        }
-
-        res = graphics.DrawImage(&b2, 1300 + 10 + 238 + 10 + 118, 50);
-
-        if (res != Gdiplus::Status::Ok)
-        {
-            MessageBox(NULL, L"FAILED TO DRAW OUTPUT IMAGE 4", L"ERROR", MB_OK);
-        }
+            // Draw layer output images
+            //DrawLayerOutputImage(900, 15, 479, 299, Layer1PooledOutput, &graphics);
+            DrawLayerOutputImage(100 + 1300, 15, 238, 148, Layer2PooledOutput, &graphics);
+            DrawLayerOutputImage(100 + 1300 + 10 + 238, 15, 118, 72, Layer3PooledOutput, &graphics);
+            DrawLayerOutputImage(100 + 1300 + 10 + 238 + 10 + 118, 15, 58, 35, Layer4PooledOutput, &graphics);
+            DrawLayerOutputImage(100 + 1300 + 10 + 238 + 10 + 118 + 10 + 58, 15, 28, 16, Layer5PooledOutput, &graphics);
         
-        // draw layer 5 image
+            imagedrawdirty = false;
 
-        Gdiplus::Bitmap b4(28, 16, PixelFormat24bppRGB);
-
-        for (int y = 0; y < 16; y++)
-        {
-            for (int x = 0; x < 28; x++)
-            {
-                b4.SetPixel(x, 16 - y, Gdiplus::Color((BYTE)1, (int)Layer5PooledOutput[x + (y * 28)].rgbRed,
-                    (int)Layer5PooledOutput[x + (y * 28)].rgbGreen,
-                    (int)Layer5PooledOutput[x + (y * 28)].rgbBlue));
-            }
+            long postdrawimages = GetTime();
+            drawimagestime = (postdrawimages - predrawimages) / 1000000.0f;
         }
 
-        res = graphics.DrawImage(&b4, 1300 + 10 + 238 + 10 + 118 + 10 + 58, 50);
-
-        if (res != Gdiplus::Status::Ok)
+        if (textdrawdirty)
         {
-            MessageBox(NULL, L"FAILED TO DRAW OUTPUT IMAGE 5", L"ERROR", MB_OK);
+            long predrawtext = GetTime();
+            // All painting occurs here, between BeginPaint and EndPaint.
+
+            DrawText(15, 105, L"VAL: ", 5, &graphics);
+            DrawText(15, 125, L"BIAS: ", 6, &graphics);
+
+            // Draw neurons
+
+            DrawNeuron(50, 25, L"W", &hdc, OutputNeurons[0] >= ActivationNumber, OutputNeurons[0], OutputBiases[0], &graphics);
+            DrawNeuron(135, 25, L"S", &hdc, OutputNeurons[1] >= ActivationNumber, OutputNeurons[1], OutputBiases[1], &graphics);
+            DrawNeuron(220, 25, L"A", &hdc, OutputNeurons[2] >= ActivationNumber, OutputNeurons[2], OutputBiases[2], &graphics);
+            DrawNeuron(305, 25, L"D", &hdc, OutputNeurons[3] >= ActivationNumber, OutputNeurons[3], OutputBiases[3], &graphics);
+            DrawNeuron(390, 25, L"Jump", &hdc, OutputNeurons[4] >= ActivationNumber, OutputNeurons[4], OutputBiases[4], &graphics);
+            DrawNeuron(475, 25, L"Attack", &hdc, OutputNeurons[5] >= ActivationNumber, OutputNeurons[5], OutputBiases[5], &graphics);
+            DrawNeuron(560, 25, L"MouseLeft", &hdc, OutputNeurons[6] >= ActivationNumber, OutputNeurons[6], OutputBiases[6], &graphics);
+            DrawNeuron(645, 25, L"MouseRight", &hdc, OutputNeurons[7] >= ActivationNumber, OutputNeurons[7], OutputBiases[7], &graphics);
+            DrawNeuron(730, 25, L"MouseDown", &hdc, OutputNeurons[8] >= ActivationNumber, OutputNeurons[8], OutputBiases[8], &graphics);
+            DrawNeuron(815, 25, L"MouseUp", &hdc, OutputNeurons[9] >= ActivationNumber, OutputNeurons[9], OutputBiases[9], &graphics);
+        
+            textdrawdirty = false;
+            long postdrawtext = GetTime();
+
+            drawtexttime = (postdrawtext - predrawtext) / 1000000.0f;
         }
-
-        // All painting occurs here, between BeginPaint and EndPaint.
-
-        TextOut(hdc, 85, 10, L"W                        S                         A                         D                       Jump                   Attack              MouseLeft           MouseRight        MouseDown        MouseUp", 207);
-
-        for (int n = 0; n < OUTPUTLAYERSIZE; n++)
-        {
-            RECT r2;
-            r2.left = 75 + (110*n);
-            r2.right = 105 + (110*n);
-            r2.top = 30;
-            r2.bottom = 60;
-
-            if(OutputNeurons[n] >= ActivationNumber) FillRect(hdc, &r2, (HBRUSH)(COLOR_BTNFACE + 1));
-            else FillRect(hdc, &r2, (HBRUSH)(COLOR_DESKTOP + 1));
-        }
-
-        // output layer values text 
-
-        TextOut(hdc, 15, 90, L"VAL: ", 6);
-
-        for (int i = 0; i < 10; i++)
-        {
-            wstring strn = to_wstring(OutputNeurons[i]);
-            TextOut(hdc, 75 + (110*i), 90, strn.c_str(), (int)strn.length());
-        }
-
-        // output layer biases text 
-
-        TextOut(hdc, 15, 75, L"BIAS: ", 7);
-
-        for (int i = 0; i < 10; i++)
-        {
-            wstring strn = to_wstring(OutputBiases[i]);
-            TextOut(hdc, 75 + (110 * i), 75, strn.c_str(), (int)strn.length());
-        }
-
-        wstring tweakrate = L"ACTUAL TWEAK RATE = " + to_wstring((float)timestweaked / (timestweaked + timesnottweaked) *100.0f) + L"%";
-        TextOut(hdc, 15, 200, tweakrate.c_str(), (int)tweakrate.length());
 
         EndPaint(hwnd, &ps);
 
-        return 0;
+        return 1;
     }
     case WM_CREATE:
     {
@@ -168,10 +245,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     }
    
-   return 0;
+   return true;
 }
 
-void CreateHelperWindow()
+HWND CreateHelperWindow()
 {
     // Register the window class.
     const wchar_t CLASS_NAME[] = L"Minecraft Bot Helper Window";
@@ -200,7 +277,7 @@ void CreateHelperWindow()
         WS_OVERLAPPEDWINDOW,            // Window style
 
         // Size and position
-        0, 720, 1900, 300,
+        0, 620, 1900, 420,
 
         NULL,       // Parent window    
         NULL,       // Menu
@@ -211,14 +288,12 @@ void CreateHelperWindow()
     if (!hwnd)
     {
         MessageBox(NULL, L"FAILED TO CREATE HELPER WINDOW", L"ERROR", MB_OK);
-        return;
+        return NULL;
     }
 
     ShowWindow(hwnd, SW_SHOW);
 
-    // Run the message loop.
-
-    //return 0;
+    return hwnd;
 }
 
 

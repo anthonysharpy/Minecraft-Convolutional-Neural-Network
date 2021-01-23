@@ -4,7 +4,7 @@ void Suicide()
 {
 	PressLetterKeys("t/kill");
 	PressSpecialKey("enter");
-	SetCursorPos(1428, 395);
+	SetCursorPos(1428, 345);
 	Sleep(1800);
 	LeftClick();
 	Sleep(1000);
