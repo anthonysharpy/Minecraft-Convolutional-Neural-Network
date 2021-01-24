@@ -173,10 +173,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             DrawFilter(220, 250, Layer4Filter, &graphics);
             DrawFilter(280, 250, Layer5Filter, &graphics);
 
-            // Tweak rate output
-            wstring tweakrate = L"ACTUAL TWEAK RATE = " + to_wstring((float)timestweaked / (timestweaked + timesnottweaked) * 100.0f) + L"%";
-            DrawText(15, 200, tweakrate.c_str(), (int)tweakrate.length(), &graphics);
-
             otherdrawdirty = false;
         }
 
@@ -218,6 +214,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             DrawNeuron(730, 25, L"MouseDown", &hdc, OutputNeurons[8] >= ActivationNumber, OutputNeurons[8], OutputBiases[8], &graphics);
             DrawNeuron(815, 25, L"MouseUp", &hdc, OutputNeurons[9] >= ActivationNumber, OutputNeurons[9], OutputBiases[9], &graphics);
         
+            // Tweak rate output
+            wstring tweakrate = L"ACTUAL TWEAK RATE = " + to_wstring((float)timestweaked / (timestweaked + timesnottweaked) * 100.0f) + L"%";
+            DrawText(15, 200, tweakrate.c_str(), (int)tweakrate.length(), &graphics);
+
             textdrawdirty = false;
             long postdrawtext = GetTime();
 

@@ -4,7 +4,7 @@ string consoleadditives;
 
 extern float thinktime;
 extern int failsinarow;
-extern int currenthink;
+extern int currentthink;
 extern float TweakChance;
 extern int CloseAttempts[5];
 extern int GetProgressDebt();
@@ -12,9 +12,9 @@ extern float getpixelstime;
 extern float pixelconverttime;
 extern float networkruntime;
 extern float processmessagetime;
-extern float invalidaterecttime;
 extern float drawimagestime;
 extern float drawtexttime;
+extern float iterationtime;
 
 void PushConsoleLine(string line)
 {
@@ -30,7 +30,7 @@ void PrintConsole() // Print a fresh console with all the bells and whistles
 {
 	system("CLS");
 
-	cout << "Simulation " << OurSimulation.CurrentNumberofSimulations << "/" << OurSimulation.GoalNumberofSimulations << ". Think " << currenthink << "/" << OurSimulation.ThinksPerSimulation << ". Average Iteration " << (OurSimulation.CurrentAverageIteration+1) << "/" << OurSimulation.AverageAlgorithmTries << ". Max TweakChance = " << (1.0 * pow(0.86f, OurSimulation.BestNumberofPorkchops)) *100.0f << "%" << endl;
+	cout << "Simulation " << OurSimulation.CurrentNumberofSimulations << "/" << OurSimulation.GoalNumberofSimulations << ". Think " << currentthink << "/" << OurSimulation.ThinksPerSimulation << ". Average Iteration " << (OurSimulation.CurrentAverageIteration+1) << "/" << OurSimulation.AverageAlgorithmTries << ". Max TweakChance = " << (1.0 * pow(0.86f, OurSimulation.BestNumberofPorkchops)) *100.0f << "%" << endl;
 	cout << "Layer1FilterSum: " << GetFilterWeightsSum(1) << endl;
 	cout << "Current simulation porkchops: " << OurSimulation.SimulationTotalPorkchops << +"(+" << HowMuchUncookedPork() << + ")" << ". Best number: " << OurSimulation.BestNumberofPorkchops << " (achieved at simulation " << OurSimulation.BestAchievedAtIteration << ")" << endl;
 	cout << "Progress debt: " << GetProgressDebt() << endl;
@@ -47,12 +47,12 @@ void PrintConsole() // Print a fresh console with all the bells and whistles
 	cout << "Process message time:		" << processmessagetime << "s" << endl;
 	cout << "	Draw images time:	" << drawimagestime << "s" << endl;
 	cout << "	Draw text time:		" << drawtexttime << "s" << endl;
-	cout << "Invalidate rect time:		" << invalidaterecttime << "s" << endl;
-	cout << "TOTAL TIME:			" << thinktime << "s" << endl;
+	cout << "TOTAL THINK TIME:		" << thinktime << "s" << endl;
+	cout << "ITERATION TIME:			" << iterationtime << "s" << endl;
 	cout << "---------------------" << endl;
-	if (thinktime > OurSimulation.MinimumThinkTime)
+	if (iterationtime > (OurSimulation.MinimumThinkTime * (currentthink+1))+0.1f)
 	{
-		cout << "WARNING: THINKTIME OVER-RUNNING!" << endl;
+		cout << "WARNING: ITERATION TIME OVER-RUNNING!" << endl;
 		cout << "---------------------" << endl;
 	}
 	cout << consoleadditives;

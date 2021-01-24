@@ -32,9 +32,9 @@ float getpixelstime;
 float pixelconverttime;
 float networkruntime;
 float processmessagetime;
-float invalidaterecttime;
 float drawimagestime;
 float drawtexttime;
+float iterationtime;
 
 bool imagedrawdirty;
 bool textdrawdirty;
@@ -55,6 +55,8 @@ long GetTime()
 
 void GetPixels()
 {
+	long prepixels = GetTime();
+	
 	hWnd = FindWindowA(NULL, "Minecraft 1.16.5 - Singleplayer");
 
 	HDC hdcScreen;
@@ -191,6 +193,9 @@ void GetPixels()
 
 	ReleaseDC(hWnd, hdcWindow);
 	ReleaseDC(NULL, hdcScreen);
+
+	long postpixels = GetTime();
+	getpixelstime = (postpixels - prepixels) / 1000000.0f;
 }
 
 int numtimesattacked = 0;
@@ -270,7 +275,7 @@ void PerformOutputs()
 void InitialiseDefaultSimulationInfo()
 {
 	OurSimulation.MinimumThinkTime = 0.1f;
-	OurSimulation.ThinksPerSimulation = 200;
+	OurSimulation.ThinksPerSimulation = 250;
 	OurSimulation.CurrentAverageIteration = 0;
 	OurSimulation.BestNumberofPorkchops = 0;
 	OurSimulation.GoalNumberofSimulations = 90000000;
@@ -284,6 +289,8 @@ int failsinarow = 0;
 
 void ProcessMessages()
 {
+	long preprocessmessages = GetTime();
+
 	MSG msg = { };
 
 	if (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) > 0) // if there's a message
@@ -304,6 +311,9 @@ void ProcessMessages()
 			MessageBox(NULL, L"ERROR. HELPER WINDOW ERROR", L"ERROR", MB_OK);
 		}
 	}
+
+	long postprocessmessages = GetTime();
+	processmessagetime = (postprocessmessages - preprocessmessages) / 1000000.0f;
 }
 
 void TakeScreenshots()
@@ -312,36 +322,30 @@ void TakeScreenshots()
 	PrintConsole();
 
 	// input
-
 	Screenshot1DArray(PixelsFloat, BotViewScreenWidth, BotViewScreenHeight, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_inputpixels");
 
 	// layer 1
-
 	Screenshot1DArray(Layer1ActivationMaps, LAYER1WIDTH, LAYER1HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer1_activationmap");
 	Screenshot1DArray(Layer1PooledOutput, LAYER1POOLEDWIDTH, LAYER1POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer1_POOLEDOUTPUT");
 
 	// layer 2
-
 	Screenshot1DArray(Layer2ActivationMaps, LAYER2WIDTH, LAYER2HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer2_activationmap");
 	Screenshot1DArray(Layer2PooledOutput, LAYER2POOLEDWIDTH, LAYER2POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer2_POOLEDOUTPUT");
 
 	// layer 3
-
 	Screenshot1DArray(Layer3ActivationMaps, LAYER3WIDTH, LAYER3HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer3_activationmap");
 	Screenshot1DArray(Layer3PooledOutput, LAYER3POOLEDWIDTH, LAYER3POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer3_POOLEDOUTPUT");
 
 	// layer 4
-
 	Screenshot1DArray(Layer4ActivationMaps, LAYER4WIDTH, LAYER4HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer4_activationmap");
 	Screenshot1DArray(Layer4PooledOutput, LAYER4POOLEDWIDTH, LAYER4POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer4_POOLEDOUTPUT");
 	
 	// layer 5
-
 	Screenshot1DArray(Layer5ActivationMaps, LAYER5WIDTH, LAYER5HEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer5_activationmap");
 	Screenshot1DArray(Layer5PooledOutput, LAYER5POOLEDWIDTH, LAYER5POOLEDHEIGHT, "sim" + to_string(OurSimulation.CurrentNumberofSimulations) + "_layer5_POOLEDOUTPUT");
 }
 
-int currenthink = 0;
+int currentthink = 0;
 
 float TweakChance = 0;
 
@@ -373,6 +377,8 @@ int porknow = 0;
 
 void ConvertRGBQUADtoRGBQUADFLOAT(RGBQUAD* inputarr, RGBQUADFLOAT* outputarr, int size)
 {
+	long preconvert = GetTime();
+
 	for (int i = 0; i < size; i++)
 	{
 		outputarr[i].reserved = (float)inputarr[i].rgbReserved;
@@ -380,10 +386,15 @@ void ConvertRGBQUADtoRGBQUADFLOAT(RGBQUAD* inputarr, RGBQUADFLOAT* outputarr, in
 		outputarr[i].rgbRed = (float)inputarr[i].rgbRed;
 		outputarr[i].rgbBlue = (float)inputarr[i].rgbBlue;
 	}
+
+	long postconvert = GetTime();
+	pixelconverttime = (postconvert - preconvert) / 1000000.0f;
 }
 
 void RunNetwork()
 {
+	long prerun = GetTime();
+
 	CalculateCovolutionalLayer(Layer1Filter, BOTINPUTPIXELHEIGHT, BOTINPUTPIXELWIDTH, PixelsFloat, Layer1ActivationMaps, Layer1PooledOutput);
 	CalculateCovolutionalLayer(Layer2Filter, LAYER1POOLEDHEIGHT, LAYER1POOLEDWIDTH, Layer1PooledOutput, Layer2ActivationMaps, Layer2PooledOutput);
 	CalculateCovolutionalLayer(Layer3Filter, LAYER2POOLEDHEIGHT, LAYER2POOLEDWIDTH, Layer2PooledOutput, Layer3ActivationMaps, Layer3PooledOutput);
@@ -392,6 +403,34 @@ void RunNetwork()
 
 	CalculateLayer10();
 	CalculateOutputLayer();
+
+	long postrun = GetTime();
+	networkruntime = (postrun - prerun) / 1000000.0f;
+}
+
+void InvalidateText()
+{
+	RECT r;
+	r.left = 0;
+	r.right = 860;
+	r.top = 420;
+	r.bottom = 0;
+
+	// Re-draw text
+	textdrawdirty = true;
+	InvalidateRect(GUIWindowHwnd, &r, FALSE);
+}
+
+void InvalidateImages()
+{
+	RECT r;
+	r.left = 860;
+	r.right = 1900;
+	r.top = 420;
+	r.bottom = 0;
+	// Re-draw images
+	imagedrawdirty = true;
+	InvalidateRect(GUIWindowHwnd, &r, FALSE);
 }
 
 int main()
@@ -432,6 +471,8 @@ int main()
 
 			for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
 			{
+				iterationtime = 0;
+
 				if (GetProgressDebt() > (OurSimulation.BestNumberofPorkchops*0.25f)*1.5f)
 				{
 					PushConsoleLine("Progress debt unrealistically high. Ending simulation.");
@@ -450,21 +491,13 @@ int main()
 
 				ClearConsole();
 
-				for (currenthink = 0; currenthink < OurSimulation.ThinksPerSimulation; currenthink++)
+				for (currentthink = 0; currentthink < OurSimulation.ThinksPerSimulation; currentthink++)
 				{
 					long a = GetTime();
 
-					long preprocessmessages = GetTime();
 					ProcessMessages();
-					long postprocessmessages = GetTime();
-
-					long prepixels = GetTime();
 					GetPixels();
-					long postpixels = GetTime();
-
-					long preconvert = GetTime();
 					ConvertRGBQUADtoRGBQUADFLOAT(Pixels, PixelsFloat, BotViewScreenHeight * BotViewScreenWidth);
-					long postconvert = GetTime();
 
 					long prerun = GetTime();
 					RunNetwork();
@@ -480,25 +513,25 @@ int main()
 
 					if (HowMuchUncookedPork() > porknow) porknow = HowMuchUncookedPork(); // because it seems sometimes the function returns zero when it shouldnt; this protects the variable
 
-					if (currenthink >= 150 && porknow == 0)
+					if (currentthink >= 150 && porknow == 0)
 					{
 						PushConsoleLine("Not getting anything. Ending simulation.");
 						PrintConsole();
 						goto end_simulation;
 					}
-					else if (currenthink >= 100 && numtimesattacked == 0)
+					else if (currentthink >= 100 && numtimesattacked == 0)
 					{
 						PushConsoleLine("Failed to attack. Ending simulation.");
 						PrintConsole();
 						goto end_simulation;
 					}
-					else if (currenthink >= 50 && havemoved == false)
+					else if (currentthink >= 50 && havemoved == false)
 					{
 						PushConsoleLine("Failed to move. Ending simulation.");
 						PrintConsole();
 						goto end_simulation;
 					}
-					else if (currenthink >= 50 && havemovedmouse == false)
+					else if (currentthink >= 50 && havemovedmouse == false)
 					{
 						PushConsoleLine("Failed to move mouse. Ending simulation.");
 						PrintConsole();
@@ -514,59 +547,27 @@ int main()
 						while (!(GetAsyncKeyState(VK_UP) & 0x8000)) {}
 					}
 
-					getpixelstime = (postpixels-prepixels) / 1000000.0f;
-					pixelconverttime = (postconvert-preconvert) / 1000000.0f;
-					networkruntime = (postrun-prerun) / 1000000.0f;
-					processmessagetime = (postprocessmessages - preprocessmessages) / 1000000.0f;
-
-					if ((currenthink % 5) == 0)
+					if ((currentthink % 5) == 0)
 					{
 						PrintConsole();
-						RECT r;
-						r.left = 0;
-						r.right = 860;
-						r.top = 420;
-						r.bottom = 0;
-
-						long preinvalidaterect = GetTime();
-						// Re-draw text only
-						textdrawdirty = true;
-						InvalidateRect(GUIWindowHwnd, &r, FALSE);
-
-						r.left = 860;
-						r.right = 1900;
-						r.top = 420;
-						r.bottom = 0;
-						// Re-draw images
-						imagedrawdirty = true;
-						InvalidateRect(GUIWindowHwnd, &r, FALSE);
-						long postinvalidaterect = GetTime();
-
-						invalidaterecttime = (postinvalidaterect - preinvalidaterect) / 1000000.0f;
+						InvalidateText();
+						InvalidateImages();
 					}
-					else
-					{
-						RECT r;
-						r.left = 860;
-						r.right = 1900;
-						r.top = 420;
-						r.bottom = 0;
-						// Re-draw images
-						long preinvalidaterect = GetTime();
-						imagedrawdirty = true;
-						InvalidateRect(GUIWindowHwnd, &r, FALSE);
-						long postinvalidaterect = GetTime();
-
-						invalidaterecttime = (postinvalidaterect - preinvalidaterect) / 1000000.0f;
-					}
-
+					else InvalidateImages();
+					
 					long b = GetTime();
 
 					thinktime = (b - a) / 1000000.0f;
+					iterationtime += thinktime;
 
-					if (thinktime < OurSimulation.MinimumThinkTime)
+					a = GetTime();
+
+					if (iterationtime < OurSimulation.MinimumThinkTime * (currentthink+1))
 					{
-						Sleep((OurSimulation.MinimumThinkTime - thinktime) * 1000.0f);
+						Sleep(((OurSimulation.MinimumThinkTime * (currentthink + 1)) - iterationtime) * 1000.0f);
+						b = GetTime();
+						thinktime = (b - a) / 1000000.0f;
+						iterationtime += thinktime;
 					}
 				}
 
@@ -631,7 +632,7 @@ int main()
 
 			int porknow = 0;
 
-			for (currenthink = 0; currenthink < OurSimulation.ThinksPerSimulation; currenthink++)
+			for (currentthink = 0; currentthink < OurSimulation.ThinksPerSimulation; currentthink++)
 			{
 				long a = GetTime();
 
@@ -663,7 +664,7 @@ int main()
 					Sleep((int)((OurSimulation.MinimumThinkTime - thinktime) * 1000));
 				}
 
-				if ((currenthink % 5) == 0) PrintConsole();
+				if ((currentthink % 5) == 0) PrintConsole();
 			}
 
 			PrintConsole();
