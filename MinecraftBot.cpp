@@ -459,13 +459,16 @@ int main()
 	{
 		for (; OurSimulation.CurrentNumberofSimulations < OurSimulation.GoalNumberofSimulations; OurSimulation.CurrentNumberofSimulations++)
 		{
+			// remove when it learns
+			OurSimulation.ThinksPerSimulation = 250;
+
 			otherdrawdirty = true;
 
 			timestweaked = 0;
 			timesnottweaked = 0;
 
 			TweakChance = GetRandomNumber(0.0, 1.0) * (float)(1.0 * pow(0.86f, OurSimulation.BestNumberofPorkchops));
-			TweakStuff(TweakChance, 1.1f);
+			TweakStuff(TweakChance, 2.0f);
 
 			OurSimulation.SimulationTotalPorkchops = 0;
 
