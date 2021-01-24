@@ -1,5 +1,7 @@
 # Minecraft-Convolutional-Neural-Network
 
+DISCLAIMER: THIS IS A PERSONAL PROJECT. It is full of bugs, badly-formatted code, unnecessary repetitions and poor design choices. It is not a good example of the kind of code I am capable of producing, other than in terms of its complexity.
+
 This is a convolutional neural network test that learns to collect pork from pigs.
 
 I don't know why anyone would want this code but for those that do (and for my future self who will have inevitably forgotten), do the following to make the bot work:
