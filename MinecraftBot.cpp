@@ -476,7 +476,7 @@ int main()
 			{
 				iterationtime = 0;
 
-				if (GetProgressDebt() > (OurSimulation.BestNumberofPorkchops*0.25f)*1.5f)
+				if (GetProgressDebt() > (OurSimulation.BestNumberofPorkchops*0.25f)*1.2f)
 				{
 					PushConsoleLine("Progress debt unrealistically high. Ending simulation.");
 					goto end_simulation;
