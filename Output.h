@@ -7,7 +7,7 @@ extern int failsinarow;
 extern int currentthink;
 extern float TweakChance;
 extern int CloseAttempts[5];
-extern int GetProgressDebt();
+extern float GetProgressDebt();
 extern float getpixelstime;
 extern float pixelconverttime;
 extern float networkruntime;

@@ -676,7 +676,8 @@ int main()
 	}
 }
 
-int GetProgressDebt()
+float GetProgressDebt()
 {
-	return (int)(((OurSimulation.BestNumberofPorkchops / 4.0f) * (OurSimulation.CurrentAverageIteration + 1.0f)) - (OurSimulation.SimulationTotalPorkchops + porknow));
+	return ((OurSimulation.BestNumberofPorkchops / 4.0f) * (OurSimulation.CurrentAverageIteration + 1.0f)) 
+		- (OurSimulation.SimulationTotalPorkchops + porknow);
 }
