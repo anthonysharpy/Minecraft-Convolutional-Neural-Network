@@ -15,6 +15,14 @@ float ClampFloat0(float n)
     return n;
 }
 
+inline void EasyDrawText(int xpos, int ypos, LPCWSTR text, int strlen, Gdiplus::Graphics* graphicsobj)
+{
+    Gdiplus::FontFamily fontFamily(L"Times New Roman");
+    Gdiplus::Font font(&fontFamily, 14, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
+    Gdiplus::SolidBrush solidBrush(Gdiplus::Color(255, 0, 0, 0));
+    graphicsobj->DrawString(text, strlen, &font, Gdiplus::PointF(xpos, ypos), &solidBrush);
+}
+
 float GetFilterStrengthScaleFactor()
 {
     float highest = 0.0f;
@@ -68,23 +76,35 @@ inline void DrawFilter(int posx, int posy, FilterRGBGroup filter, Gdiplus::Graph
     {
         for (int y = 0; y < 3; y++)
         {
+            // Red.
             Gdiplus::SolidBrush* redbrush = new Gdiplus::SolidBrush(Gdiplus::Color(
                 (BYTE)(ClampFloat0(filter.OurFilter.Weights[x + (y * 3)].redWeight / scalefactor) * 255.0f), 0, 0));
 
             graphicsobj->FillRectangle(redbrush,
                 Gdiplus::Rect(posx + (x * 10), posy + (y * 10), 10, 10));
 
+            float sum = GetFilterWeightsSum(filter, Red);
+            EasyDrawText(posx, posy + 30, to_wstring(sum).c_str(), 4, graphicsobj);
+
+            // Green.
             Gdiplus::SolidBrush* greenbrush = new Gdiplus::SolidBrush(Gdiplus::Color(
                 0, (BYTE)(ClampFloat0(filter.OurFilter.Weights[x + (y * 3)].greenWeight / scalefactor) * 255.0f), 0));
 
             graphicsobj->FillRectangle(greenbrush,
-                Gdiplus::Rect(posx + (x * 10), posy + (y * 10) + 40, 10, 10));
+                Gdiplus::Rect(posx + (x * 10), posy + (y * 10) + 50, 10, 10));
 
+            sum = GetFilterWeightsSum(filter, Green);
+            EasyDrawText(posx, posy + 30 + 50, to_wstring(sum).c_str(), 4, graphicsobj);
+
+            // Blue.
             Gdiplus::SolidBrush* bluebrush = new Gdiplus::SolidBrush(Gdiplus::Color(
                 0, 0, (BYTE)(ClampFloat0(filter.OurFilter.Weights[x + (y * 3)].blueWeight / scalefactor) * 255.0f)));
 
             graphicsobj->FillRectangle(bluebrush,
-                Gdiplus::Rect(posx + (x * 10), posy + (y * 10) + 80, 10, 10));
+                Gdiplus::Rect(posx + (x * 10), posy + (y * 10) + 100, 10, 10));
+
+            sum = GetFilterWeightsSum(filter, Blue);
+            EasyDrawText(posx, posy + 30 + 100, to_wstring(sum).c_str(), 4, graphicsobj);
         }
     }
 }
@@ -106,18 +126,10 @@ inline void DrawLayerOutputImage(int xpos, int ypos, int sizex, int sizey, RGBQU
     graphicsobj->DrawImage(&b, xpos, ypos);
 }
 
-inline void DrawText(int xpos, int ypos, LPCWSTR text, int strlen, Gdiplus::Graphics* graphicsobj)
-{
-    Gdiplus::FontFamily fontFamily(L"Times New Roman");
-    Gdiplus::Font font(&fontFamily, 14, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
-    Gdiplus::SolidBrush solidBrush(Gdiplus::Color(255, 0, 0, 0));
-    graphicsobj->DrawString(text, strlen, &font, Gdiplus::PointF(xpos, ypos), &solidBrush);
-}
-
 inline void DrawNeuron(int xpos, int ypos, wstring label, HDC* hdc, bool on, float value, float bias, Gdiplus::Graphics* graphicsobj)
 {
     // Draw label
-    DrawText(xpos, ypos, label.c_str(), label.length(), graphicsobj);
+    EasyDrawText(xpos, ypos, label.c_str(), label.length(), graphicsobj);
 
     // Draw square
     RECT r;
@@ -131,11 +143,11 @@ inline void DrawNeuron(int xpos, int ypos, wstring label, HDC* hdc, bool on, flo
     
     // Draw value text
     wstring strn = to_wstring((int)value);
-    DrawText(xpos, ypos + 80, strn.c_str(), (int)strn.length(), graphicsobj);
+    EasyDrawText(xpos, ypos + 80, strn.c_str(), (int)strn.length(), graphicsobj);
     
     // Draw bias text
     strn = to_wstring((int)bias);
-    DrawText(xpos, ypos+100, strn.c_str(), (int)strn.length(), graphicsobj);
+    EasyDrawText(xpos, ypos+100, strn.c_str(), (int)strn.length(), graphicsobj);
 }
 
 inline void ClearScreen(Gdiplus::Graphics* graphicsobj)
@@ -143,7 +155,15 @@ inline void ClearScreen(Gdiplus::Graphics* graphicsobj)
     Gdiplus::SolidBrush* whitebrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 255, 255));
 
     graphicsobj->FillRectangle(whitebrush,
-        Gdiplus::Rect(0, 0, 900, 250));
+        Gdiplus::Rect(0, 0, 900, 220));
+}
+
+inline void ClearAllScreen(Gdiplus::Graphics* graphicsobj)
+{
+    Gdiplus::SolidBrush* whitebrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 255, 255));
+
+    graphicsobj->FillRectangle(whitebrush,
+        Gdiplus::Rect(0, 0, 900, 420));
 }
 
 extern bool imagedrawdirty;
@@ -166,12 +186,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (otherdrawdirty)
         {
+            ClearAllScreen(&graphics);
+
             // Draw filters
-            DrawFilter(40, 250, Layer1Filter, &graphics);
-            DrawFilter(100, 250, Layer2Filter, &graphics);
-            DrawFilter(160, 250, Layer3Filter, &graphics);
-            DrawFilter(220, 250, Layer4Filter, &graphics);
-            DrawFilter(280, 250, Layer5Filter, &graphics);
+            DrawFilter(40, 220, Layer1Filter, &graphics);
+            DrawFilter(120, 220, Layer2Filter, &graphics);
+            DrawFilter(200, 220, Layer3Filter, &graphics);
+            DrawFilter(280, 220, Layer4Filter, &graphics);
+            DrawFilter(360, 220, Layer5Filter, &graphics);
 
             otherdrawdirty = false;
         }
@@ -198,8 +220,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             long predrawtext = GetTime();
             // All painting occurs here, between BeginPaint and EndPaint.
 
-            DrawText(15, 105, L"VAL: ", 5, &graphics);
-            DrawText(15, 125, L"BIAS: ", 6, &graphics);
+            EasyDrawText(15, 105, L"VAL: ", 5, &graphics);
+            EasyDrawText(15, 125, L"BIAS: ", 6, &graphics);
 
             // Draw neurons
 
@@ -216,7 +238,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         
             // Tweak rate output
             wstring tweakrate = L"ACTUAL TWEAK RATE = " + to_wstring((float)timestweaked / (timestweaked + timesnottweaked) * 100.0f) + L"%";
-            DrawText(15, 200, tweakrate.c_str(), (int)tweakrate.length(), &graphics);
+            EasyDrawText(15, 170, tweakrate.c_str(), (int)tweakrate.length(), &graphics);
 
             textdrawdirty = false;
             long postdrawtext = GetTime();
