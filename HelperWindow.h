@@ -317,5 +317,3 @@ HWND CreateHelperWindow()
 
     return hwnd;
 }
-
-

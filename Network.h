@@ -128,6 +128,8 @@ float GetFilterWeightsSum(FilterRGBGroup filter, FilterColor color)
 		break;
 	}
 
+	total += filter.Bias;
+
 	return total;
 }
 
