@@ -516,7 +516,7 @@ int main()
 
 					if (HowMuchUncookedPork() > porknow) porknow = HowMuchUncookedPork(); // because it seems sometimes the function returns zero when it shouldnt; this protects the variable
 
-					if (currentthink >= 150 && porknow == 0)
+					if (currentthink >= 100 && porknow == 0)
 					{
 						PushConsoleLine("Not getting anything. Ending simulation.");
 						PrintConsole();
