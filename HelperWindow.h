@@ -109,6 +109,32 @@ inline void DrawFilter(int posx, int posy, FilterRGBGroup filter, Gdiplus::Graph
     }
 }
 
+inline void DrawLayerOutputImageScaled(int scale, int xpos, int ypos, int inputsizex, int inputsizey, RGBQUADFLOAT* imagearray, Gdiplus::Graphics* graphicsobj)
+{
+    Gdiplus::Bitmap b(inputsizex*scale, inputsizey*scale, PixelFormat24bppRGB);
+    Gdiplus::Color c;
+
+    for (int y = 0; y < inputsizey; y++)
+    {
+        for (int x = 0; x < inputsizex; x++)
+        {
+            c = Gdiplus::Color((BYTE)255, (int)imagearray[x + (y * inputsizex)].rgbRed,
+                (int)imagearray[x + (y * inputsizex)].rgbGreen,
+                (int)imagearray[x + (y * inputsizex)].rgbBlue);
+
+            for (int y2 = 0; y2 < scale; y2++)
+            {
+                for (int x2 = 0; x2 < scale; x2++)
+                {
+                    b.SetPixel((x * scale) + x2, ((inputsizey - y) * scale) + y2, c);
+                }
+            }
+        }
+    }
+
+    graphicsobj->DrawImage(&b, xpos, ypos);
+}
+
 inline void DrawLayerOutputImage(int xpos, int ypos, int sizex, int sizey, RGBQUADFLOAT* imagearray, Gdiplus::Graphics* graphicsobj)
 {
     Gdiplus::Bitmap b(sizex, sizey, PixelFormat24bppRGB);
@@ -208,7 +234,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             DrawLayerOutputImage(100 + 1300 + 10 + 238, 15, 118, 72, Layer3PooledOutput, &graphics);
             DrawLayerOutputImage(100 + 1300 + 10 + 238 + 10 + 118, 15, 58, 35, Layer4PooledOutput, &graphics);
             DrawLayerOutputImage(100 + 1300 + 10 + 238 + 10 + 118 + 10 + 58, 15, 28, 16, Layer5PooledOutput, &graphics);
-        
+            DrawLayerOutputImageScaled(8, 1400, 200, 28, 16, Layer5PooledOutput, &graphics);
+
+
             imagedrawdirty = false;
 
             long postdrawimages = GetTime();

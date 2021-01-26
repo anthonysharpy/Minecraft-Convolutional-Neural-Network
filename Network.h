@@ -1,8 +1,5 @@
 #pragma once
 
-// TODO : calculate layer 4 takes too long ... as do other things probably
-// todo: change optimisations
-
 #include "Filter.h"
 #include "FilterRGBGroup.h"
 
