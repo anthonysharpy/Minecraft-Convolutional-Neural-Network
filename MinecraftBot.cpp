@@ -471,10 +471,10 @@ int main()
 			TweakStuff(TweakChance, 1.1f);
 
 			OurSimulation.SimulationTotalPorkchops = 0;
-			porknow = 0;
 
 			for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
 			{
+				porknow = 0;
 				iterationtime = 0;
 
 				if (GetProgressDebt() > (OurSimulation.BestNumberofPorkchops*0.25f)*1.2f)
@@ -518,7 +518,7 @@ int main()
 
 					if (HowMuchUncookedPork() > porknow) porknow = HowMuchUncookedPork(); // because it seems sometimes the function returns zero when it shouldnt; this protects the variable
 
-					if (currentthink >= 150 && GetProgressDebt() > (OurSimulation.BestNumberofPorkchops / 4.0f) * 0.3f)
+					if (currentthink >= 150 && GetProgressDebt() > (OurSimulation.BestNumberofPorkchops / 4.0f) * 0.7f)
 					{
 						PushConsoleLine("Progress debt already unrealistically high. Ending simulation.");
 						PrintConsole();
