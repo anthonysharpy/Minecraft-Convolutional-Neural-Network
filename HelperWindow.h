@@ -184,6 +184,28 @@ inline void ClearScreen(Gdiplus::Graphics* graphicsobj)
         Gdiplus::Rect(0, 0, 900, 220));
 }
 
+inline void DrawDoubleArray(int scale, int size, double array[], int xpos, int ypos, Gdiplus::Graphics* graphicsobj)
+{
+    Gdiplus::Bitmap b(size*scale, scale, PixelFormat24bppRGB);
+    Gdiplus::Color c;
+
+    for (int x = 0; x < size; x++)
+    {
+        if (array[x] > 0) c = Gdiplus::Color(200, 200, 200);
+        else c = Gdiplus::Color(0, 0, 0);
+
+        for (int nx = 0; nx < scale; nx++)
+        {
+            for (int ny = 0; ny < scale; ny++)
+            {
+                b.SetPixel((x * scale) + nx, ny, c);
+            }
+        }
+    }
+    
+    graphicsobj->DrawImage(&b, xpos, ypos);
+}
+
 inline void ClearAllScreen(Gdiplus::Graphics* graphicsobj)
 {
     Gdiplus::SolidBrush* whitebrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 255, 255));
@@ -228,14 +250,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
             long predrawimages = GetTime();
 
+            DrawDoubleArray(8, 30, Layer10Neurons, 500, 300, &graphics);
+
             // Draw layer output images
             //DrawLayerOutputImage(900, 15, 479, 299, Layer1PooledOutput, &graphics);
-            DrawLayerOutputImage(100 + 1300, 15, 238, 148, Layer2PooledOutput, &graphics);
-            DrawLayerOutputImage(100 + 1300 + 10 + 238, 15, 118, 72, Layer3PooledOutput, &graphics);
-            DrawLayerOutputImage(100 + 1300 + 10 + 238 + 10 + 118, 15, 58, 35, Layer4PooledOutput, &graphics);
-            DrawLayerOutputImage(100 + 1300 + 10 + 238 + 10 + 118 + 10 + 58, 15, 28, 16, Layer5PooledOutput, &graphics);
-            DrawLayerOutputImageScaled(8, 1400, 200, 28, 16, Layer5PooledOutput, &graphics);
+            DrawLayerOutputImage(900, 15, 238, 148, Layer2PooledOutput, &graphics);
 
+            //DrawLayerOutputImage(100 + 800 + 10 + 238, 15, 118, 72, Layer3PooledOutput, &graphics);
+            DrawLayerOutputImageScaled(2, 900 + 10 + 238, 15, 118, 72, Layer3PooledOutput, &graphics);
+
+            //DrawLayerOutputImage(100 + 800 + 10 + 238 + 10 + 118, 15, 58, 35, Layer4PooledOutput, &graphics);
+            DrawLayerOutputImageScaled(4, 900 + 10 + 238 + 10 + 238, 15, 58, 35, Layer4PooledOutput, &graphics);
+
+            //DrawLayerOutputImage(100 + 800 + 10 + 238 + 10 + 118 + 10 + 58, 15, 28, 16, Layer5PooledOutput, &graphics);
+            DrawLayerOutputImageScaled(8, 900 + 10 + 238 + 10 + 238 + 10 + 238, 15, 28, 16, Layer5PooledOutput, &graphics);
 
             imagedrawdirty = false;
 

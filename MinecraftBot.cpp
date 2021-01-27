@@ -40,6 +40,9 @@ bool imagedrawdirty;
 bool textdrawdirty;
 bool otherdrawdirty;
 
+float runtime;
+int simulationsdonethisrun;
+
 void GotoMinecraftWindow()
 {
 	SetForegroundWindow(hWnd);
@@ -435,6 +438,8 @@ void InvalidateImages()
 
 int main()
 {
+	long prestart = GetTime();
+
 	hWnd = FindWindowA(NULL, "Minecraft 1.16.5 - Singleplayer");
 
 	GUIWindowHwnd = CreateHelperWindow();
@@ -498,6 +503,9 @@ int main()
 
 				for (currentthink = 0; currentthink < OurSimulation.ThinksPerSimulation; currentthink++)
 				{
+					long poststart = GetTime();
+					runtime = (poststart - prestart) / 1000000.0f;
+
 					long a = GetTime();
 
 					ProcessMessages();
@@ -522,30 +530,35 @@ int main()
 					{
 						PushConsoleLine("Progress debt already unrealistically high. Ending simulation.");
 						PrintConsole();
+						OurSimulation.SimulationTotalPorkchops += porknow;
 						goto end_simulation;
 					}
 					if (currentthink >= 100 && porknow == 0)
 					{
 						PushConsoleLine("Not getting anything. Ending simulation.");
 						PrintConsole();
+						OurSimulation.SimulationTotalPorkchops += porknow;
 						goto end_simulation;
 					}
 					else if (currentthink >= 100 && numtimesattacked == 0)
 					{
 						PushConsoleLine("Failed to attack. Ending simulation.");
 						PrintConsole();
+						OurSimulation.SimulationTotalPorkchops += porknow;
 						goto end_simulation;
 					}
 					else if (currentthink >= 50 && havemoved == false)
 					{
 						PushConsoleLine("Failed to move. Ending simulation.");
 						PrintConsole();
+						OurSimulation.SimulationTotalPorkchops += porknow;
 						goto end_simulation;
 					}
 					else if (currentthink >= 50 && havemovedmouse == false)
 					{
 						PushConsoleLine("Failed to move mouse. Ending simulation.");
 						PrintConsole();
+						OurSimulation.SimulationTotalPorkchops += porknow;
 						goto end_simulation;
 					}
 
@@ -591,6 +604,8 @@ int main()
 			}
 
 		end_simulation:
+
+			simulationsdonethisrun++;
 
 			PushConsoleLine("Simulation finished.");
 

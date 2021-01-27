@@ -7,6 +7,8 @@ extern int failsinarow;
 extern int currentthink;
 extern float TweakChance;
 extern int CloseAttempts[5];
+extern int simulationsdonethisrun;
+extern float runtime;
 extern float GetProgressDebt();
 extern float getpixelstime;
 extern float pixelconverttime;
@@ -26,12 +28,18 @@ void ClearConsole()
 	consoleadditives = "";
 }
 
+float GetSimulationsPerHour()
+{
+	return (simulationsdonethisrun / runtime) * 60.0f * 60.0f;
+}
+
 void PrintConsole() // Print a fresh console with all the bells and whistles
 {
 	system("CLS");
 
 	cout << "Simulation " << OurSimulation.CurrentNumberofSimulations << "/" << OurSimulation.GoalNumberofSimulations << ". Think " << currentthink << "/" << OurSimulation.ThinksPerSimulation << ". Average Iteration " << (OurSimulation.CurrentAverageIteration+1) << "/" << OurSimulation.AverageAlgorithmTries << ". Max TweakChance = " << (1.0 * pow(0.86f, OurSimulation.BestNumberofPorkchops)) *100.0f << "%" << endl;
 	cout << "Current simulation porkchops: " << OurSimulation.SimulationTotalPorkchops << +"(+" << HowMuchUncookedPork() << + ")" << ". Best number: " << OurSimulation.BestNumberofPorkchops << " (achieved at simulation " << OurSimulation.BestAchievedAtIteration << ")" << endl;
+	cout << simulationsdonethisrun << " simulations done (" << GetSimulationsPerHour() << "/hr)" << endl;
 	cout << "Progress debt: " << GetProgressDebt() << endl;
 	cout << "---------------------" << endl;
 	cout << OurSimulation.BestNumberofPorkchops - 1 << ": " << CloseAttempts[4] << "\n";
