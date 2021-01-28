@@ -482,7 +482,7 @@ int main()
 				porknow = 0;
 				iterationtime = 0;
 
-				if (GetProgressDebt() > (OurSimulation.BestNumberofPorkchops*0.25f)*1.2f)
+				if (GetProgressDebt() > (OurSimulation.BestNumberofPorkchops*0.25f)*1.3f)
 				{
 					PushConsoleLine("Progress debt unrealistically high. Ending simulation.");
 					PrintConsole();
