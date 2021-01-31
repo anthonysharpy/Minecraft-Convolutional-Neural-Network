@@ -20,7 +20,7 @@ inline void EasyDrawText(int xpos, int ypos, LPCWSTR text, int strlen, Gdiplus::
     Gdiplus::FontFamily fontFamily(L"Times New Roman");
     Gdiplus::Font font(&fontFamily, 14, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
     Gdiplus::SolidBrush solidBrush(Gdiplus::Color(255, 0, 0, 0));
-    graphicsobj->DrawString(text, strlen, &font, Gdiplus::PointF(xpos, ypos), &solidBrush);
+    graphicsobj->DrawString(text, strlen, &font, Gdiplus::PointF((Gdiplus::REAL)xpos, (Gdiplus::REAL)ypos), &solidBrush);
 }
 
 float GetFilterStrengthScaleFactor()
@@ -152,10 +152,10 @@ inline void DrawLayerOutputImage(int xpos, int ypos, int sizex, int sizey, RGBQU
     graphicsobj->DrawImage(&b, xpos, ypos);
 }
 
-inline void DrawNeuron(int xpos, int ypos, wstring label, HDC* hdc, bool on, float value, float bias, Gdiplus::Graphics* graphicsobj)
+inline void DrawNeuron(int xpos, int ypos, wstring label, HDC* hdc, bool on, double value, float bias, Gdiplus::Graphics* graphicsobj)
 {
     // Draw label
-    EasyDrawText(xpos, ypos, label.c_str(), label.length(), graphicsobj);
+    EasyDrawText(xpos, ypos, label.c_str(), (int)label.length(), graphicsobj);
 
     // Draw square
     RECT r;
