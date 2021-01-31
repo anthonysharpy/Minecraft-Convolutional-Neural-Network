@@ -11,6 +11,7 @@
 #include "SimulationInfo.h"
 #include "Output.h"
 #include "HelperWindow.h"
+#include "Enums.h"
 
 using namespace std;
 
@@ -352,8 +353,6 @@ int currentthink = 0;
 
 float TweakChance = 0;
 
-enum class RunMode { Learning, Performance};
-
 RunMode CurrentRunMode;
 
 void GetRunMode()
@@ -460,196 +459,202 @@ int main()
 
 	bool screenshotted = false;
 
-	if (CurrentRunMode == RunMode::Learning)
+	cout << "A" << endl;
+
+	cout << "B" << endl;
+
+	for (; OurSimulation.CurrentNumberofSimulations < OurSimulation.GoalNumberofSimulations; OurSimulation.CurrentNumberofSimulations++)
 	{
-		for (; OurSimulation.CurrentNumberofSimulations < OurSimulation.GoalNumberofSimulations; OurSimulation.CurrentNumberofSimulations++)
+		cout << "C" << endl;
+
+		otherdrawdirty = true;
+
+		timestweaked = 0;
+		timesnottweaked = 0;
+
+		if (CurrentRunMode == RunMode::Learning)
 		{
-			otherdrawdirty = true;
-
-			timestweaked = 0;
-			timesnottweaked = 0;
-
-			if (CurrentRunMode == RunMode::Learning)
-			{
-				TweakChance = GetRandomNumber(0.0, 1.0) * (float)(1.0 * pow(0.86f, OurSimulation.BestNumberofPorkchops));
-				TweakStuff(TweakChance, 1.1f);
-			}
-
-			OurSimulation.SimulationTotalPorkchops = 0;
-
-			for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
-			{
-				porknow = 0;
-				iterationtime = 0;
-
-				if (CurrentRunMode == RunMode::Learning && GetProgressDebt() > (OurSimulation.BestNumberofPorkchops*0.25f)*1.3f)
-				{
-					PushConsoleLine("Progress debt unrealistically high. Ending simulation.");
-					PrintConsole();
-					goto end_simulation;
-				}
-
-				numtimesattacked = 0;
-				havemoved = false;
-				havemovedmouse = false;
-
-				ClearInventory();
-				Suicide();
-				Sleep(1500);
-
-				screenshotted = false;
-
-				ClearConsole();
-
-				for (currentthink = 0; currentthink < OurSimulation.ThinksPerSimulation; currentthink++)
-				{
-					long poststart = GetTime();
-					runtime = (poststart - prestart) / 1000000.0f;
-
-					long a = GetTime();
-
-					ProcessMessages();
-					GetPixels();
-					ConvertRGBQUADtoRGBQUADFLOAT(Pixels, PixelsFloat, BotViewScreenHeight * BotViewScreenWidth);
-
-					long prerun = GetTime();
-					RunNetwork();
-					long postrun = GetTime();
-
-					if (CurrentRunMode == RunMode::Learning && !screenshotted)
-					{
-						TakeScreenshots();
-						screenshotted = true;
-					}
-
-					PerformOutputs();
-
-					if (HowMuchUncookedPork() > porknow) porknow = HowMuchUncookedPork(); // because it seems sometimes the function returns zero when it shouldnt; this protects the variable
-
-					if (CurrentRunMode == RunMode::Learning)
-					{
-						if (currentthink >= 150 && GetProgressDebt() > (OurSimulation.BestNumberofPorkchops / 4.0f) * 0.7f)
-						{
-							PushConsoleLine("Progress debt already unrealistically high. Ending simulation.");
-							PrintConsole();
-							OurSimulation.SimulationTotalPorkchops += porknow;
-							goto end_simulation;
-						}
-						if (currentthink >= 100 && porknow == 0)
-						{
-							PushConsoleLine("Not getting anything. Ending simulation.");
-							PrintConsole();
-							OurSimulation.SimulationTotalPorkchops += porknow;
-							goto end_simulation;
-						}
-						else if (currentthink >= 100 && numtimesattacked == 0)
-						{
-							PushConsoleLine("Failed to attack. Ending simulation.");
-							PrintConsole();
-							OurSimulation.SimulationTotalPorkchops += porknow;
-							goto end_simulation;
-						}
-						else if (currentthink >= 50 && havemoved == false)
-						{
-							PushConsoleLine("Failed to move. Ending simulation.");
-							PrintConsole();
-							OurSimulation.SimulationTotalPorkchops += porknow;
-							goto end_simulation;
-						}
-						else if (currentthink >= 50 && havemovedmouse == false)
-						{
-							PushConsoleLine("Failed to move mouse. Ending simulation.");
-							PrintConsole();
-							OurSimulation.SimulationTotalPorkchops += porknow;
-							goto end_simulation;
-						}
-					}
-
-					if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-					{
-						AllKeysUp();
-
-						std::cout << "Paused. Press UP to unpause." << endl;
-
-						while (!(GetAsyncKeyState(VK_UP) & 0x8000)) {}
-					}
-
-					if ((currentthink % 5) == 0)
-					{
-						PrintConsole();
-						InvalidateText();
-						InvalidateImages();
-					}
-					else InvalidateImages();
-					
-					long b = GetTime();
-
-					thinktime = (b - a) / 1000000.0f;
-					iterationtime += thinktime;
-
-					a = GetTime();
-
-					if (iterationtime < OurSimulation.MinimumThinkTime * (currentthink+1))
-					{
-						Sleep((DWORD)(((OurSimulation.MinimumThinkTime * (currentthink + 1)) - iterationtime) * 1000.0f));
-						b = GetTime();
-						thinktime = (b - a) / 1000000.0f;
-						iterationtime += thinktime;
-					}
-				}
-
-				PushConsoleLine("Iteration finished.");
-				PrintConsole();
-
-				AllKeysUp();
-
-				OurSimulation.SimulationTotalPorkchops += porknow;
-			}
-
-		end_simulation:
-
-			AllKeysUp();
-			PushConsoleLine("Simulation finished.");
-
-			if (CurrentRunMode == RunMode::Learning)
-			{
-				simulationsdonethisrun++;
-
-				if (OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops)
-				{
-					PushConsoleLine("Better or same cost; keeping");
-
-					if (OurSimulation.SimulationTotalPorkchops > OurSimulation.BestNumberofPorkchops) memset(CloseAttempts, 0, sizeof(CloseAttempts));
-
-					OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
-					OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
-
-					SaveNetwork();
-				}
-				else
-				{
-					// close attempt counter
-					if (OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops - 5)
-					{
-						int n = OurSimulation.SimulationTotalPorkchops - OurSimulation.BestNumberofPorkchops + 5;
-
-						CloseAttempts[n]++;
-					}
-
-					PushConsoleLine("Worse cost; reverting network");
-					RevertTweaks();
-				}
-
-				SaveArraysToFile();
-			}
-
-			PrintConsole();
+			TweakChance = GetRandomNumber(0.0, 1.0) * (float)(1.0 * pow(0.86f, OurSimulation.BestNumberofPorkchops));
+			TweakStuff(TweakChance, 1.1f);
 		}
 
-		cout << "Program finished.";
+		OurSimulation.SimulationTotalPorkchops = 0;
 
-		system("Pause");
+		for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
+		{
+			cout << "D" << endl;
+
+			porknow = 0;
+			iterationtime = 0;
+
+			if (CurrentRunMode == RunMode::Learning && GetProgressDebt() > (OurSimulation.BestNumberofPorkchops*0.25f)*1.3f)
+			{
+				PushConsoleLine("Progress debt unrealistically high. Ending simulation.");
+				PrintConsole();
+				goto end_simulation;
+			}
+
+			numtimesattacked = 0;
+			havemoved = false;
+			havemovedmouse = false;
+
+			ClearInventory();
+			Suicide();
+			Sleep(1500);
+
+			screenshotted = false;
+
+			ClearConsole();
+
+			for (currentthink = 0; currentthink < OurSimulation.ThinksPerSimulation; currentthink++)
+			{
+				long poststart = GetTime();
+				runtime = (poststart - prestart) / 1000000.0f;
+
+				long a = GetTime();
+
+				ProcessMessages();
+				GetPixels();
+				ConvertRGBQUADtoRGBQUADFLOAT(Pixels, PixelsFloat, BotViewScreenHeight * BotViewScreenWidth);
+
+				long prerun = GetTime();
+				RunNetwork();
+				long postrun = GetTime();
+
+				if (CurrentRunMode == RunMode::Learning && !screenshotted)
+				{
+					TakeScreenshots();
+					screenshotted = true;
+				}
+
+				PerformOutputs();
+
+				if (HowMuchUncookedPork() > porknow) porknow = HowMuchUncookedPork(); // because it seems sometimes the function returns zero when it shouldnt; this protects the variable
+
+				if (CurrentRunMode == RunMode::Learning)
+				{
+					if (currentthink >= 150 && GetProgressDebt() > (OurSimulation.BestNumberofPorkchops / 4.0f) * 0.7f)
+					{
+						PushConsoleLine("Progress debt already unrealistically high. Ending simulation.");
+						PrintConsole();
+						OurSimulation.SimulationTotalPorkchops += porknow;
+						goto end_simulation;
+					}
+					if (currentthink >= 100 && porknow == 0)
+					{
+						PushConsoleLine("Not getting anything. Ending simulation.");
+						PrintConsole();
+						OurSimulation.SimulationTotalPorkchops += porknow;
+						goto end_simulation;
+					}
+					else if (currentthink >= 100 && numtimesattacked == 0)
+					{
+						PushConsoleLine("Failed to attack. Ending simulation.");
+						PrintConsole();
+						OurSimulation.SimulationTotalPorkchops += porknow;
+						goto end_simulation;
+					}
+					else if (currentthink >= 50 && havemoved == false)
+					{
+						PushConsoleLine("Failed to move. Ending simulation.");
+						PrintConsole();
+						OurSimulation.SimulationTotalPorkchops += porknow;
+						goto end_simulation;
+					}
+					else if (currentthink >= 50 && havemovedmouse == false)
+					{
+						PushConsoleLine("Failed to move mouse. Ending simulation.");
+						PrintConsole();
+						OurSimulation.SimulationTotalPorkchops += porknow;
+						goto end_simulation;
+					}
+				}
+
+				if (GetAsyncKeyState(VK_DOWN) & 0x8000)
+				{
+					AllKeysUp();
+
+					std::cout << "Paused. Press UP to unpause." << endl;
+
+					while (!(GetAsyncKeyState(VK_UP) & 0x8000)) {}
+				}
+
+				if ((currentthink % 5) == 0)
+				{
+					PrintConsole();
+					InvalidateText();
+					InvalidateImages();
+				}
+				else InvalidateImages();
+					
+				long b = GetTime();
+
+				thinktime = (b - a) / 1000000.0f;
+				iterationtime += thinktime;
+
+				a = GetTime();
+
+				if (iterationtime < OurSimulation.MinimumThinkTime * (currentthink+1))
+				{
+					Sleep((DWORD)(((OurSimulation.MinimumThinkTime * (currentthink + 1)) - iterationtime) * 1000.0f));
+					b = GetTime();
+					thinktime = (b - a) / 1000000.0f;
+					iterationtime += thinktime;
+				}
+			}
+
+			PushConsoleLine("Iteration finished.");
+			PrintConsole();
+
+			AllKeysUp();
+
+			OurSimulation.SimulationTotalPorkchops += porknow;
+		}
+
+		cout << "E" << endl;
+
+	end_simulation:
+
+		AllKeysUp();
+		PushConsoleLine("Simulation finished.");
+
+		if (CurrentRunMode == RunMode::Learning)
+		{
+			simulationsdonethisrun++;
+
+			if (OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops)
+			{
+				PushConsoleLine("Better or same cost; keeping");
+
+				if (OurSimulation.SimulationTotalPorkchops > OurSimulation.BestNumberofPorkchops) memset(CloseAttempts, 0, sizeof(CloseAttempts));
+
+				OurSimulation.BestNumberofPorkchops = OurSimulation.SimulationTotalPorkchops;
+				OurSimulation.BestAchievedAtIteration = OurSimulation.CurrentNumberofSimulations;
+
+				SaveNetwork();
+			}
+			else
+			{
+				// close attempt counter
+				if (OurSimulation.SimulationTotalPorkchops >= OurSimulation.BestNumberofPorkchops - 5)
+				{
+					int n = OurSimulation.SimulationTotalPorkchops - OurSimulation.BestNumberofPorkchops + 5;
+
+					CloseAttempts[n]++;
+				}
+
+				PushConsoleLine("Worse cost; reverting network");
+				RevertTweaks();
+			}
+
+			SaveArraysToFile();
+		}
+
+		PrintConsole();
 	}
+
+	cout << "Program ended\n.";
+	system("Pause");
 }
 
 float GetProgressDebt()
