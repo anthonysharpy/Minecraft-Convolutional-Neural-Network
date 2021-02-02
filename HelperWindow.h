@@ -293,7 +293,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             DrawNeuron(815, 25, L"MouseUp", &hdc, OutputNeurons[9] >= ActivationNumber, OutputNeurons[9], OutputBiases[9], &graphics);
         
             // Tweak rate output
-            wstring tweakrate = L"ACTUAL TWEAK RATE = " + to_wstring((float)timestweaked / (timestweaked + timesnottweaked) * 100.0f) + L"%";
+            wstring tweakrate = L"ACTUAL TWEAK RATE = " + 
+                to_wstring((float)timestweaked / (timestweaked + timesnottweaked) * 100.0f) + 
+                L"% (" +
+                to_wstring(timestweaked) + 
+                L"/" +
+                to_wstring((timestweaked+timesnottweaked)) +
+                L")";
             EasyDrawText(15, 170, tweakrate.c_str(), (int)tweakrate.length(), &graphics);
 
             textdrawdirty = false;

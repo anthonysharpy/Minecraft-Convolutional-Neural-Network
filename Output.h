@@ -71,7 +71,7 @@ void PrintConsole() // Print a fresh console with all the bells and whistles
 	}
 	else
 	{
-		cout << "PERFORMANCE MODE\n.";
+		cout << "PERFORMANCE MODE\n";
 		cout << "Think " << currentthink << "/" << OurSimulation.ThinksPerSimulation << ". Average Iteration " << (OurSimulation.CurrentAverageIteration + 1) << "/" << OurSimulation.AverageAlgorithmTries << endl;
 		cout << "Current simulation porkchops: " << OurSimulation.SimulationTotalPorkchops << +"(+" << HowMuchUncookedPork() << +")" << ". Best number: " << OurSimulation.BestNumberofPorkchops << " (achieved at simulation " << OurSimulation.BestAchievedAtIteration << ")" << endl;
 		cout << "Progress debt: " << GetProgressDebt() << endl;
