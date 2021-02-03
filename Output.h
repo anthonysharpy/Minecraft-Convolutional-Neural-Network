@@ -10,7 +10,7 @@ extern int currentthink;
 extern float TweakChance;
 extern int CloseAttempts[5];
 extern int simulationsdonethisrun;
-extern float runtime;
+extern double runtime;
 extern float GetProgressDebt();
 extern float getpixelstime;
 extern float pixelconverttime;
@@ -20,6 +20,8 @@ extern float drawimagestime;
 extern float drawtexttime;
 extern float iterationtime;
 extern RunMode CurrentRunMode;
+extern int currenttweakmode;
+extern int currenttweakfilter;
 
 void PushConsoleLine(string line)
 {
@@ -31,9 +33,27 @@ void ClearConsole()
 	consoleadditives = "";
 }
 
-float GetSimulationsPerHour()
+double GetSimulationsPerHour()
 {
-	return (simulationsdonethisrun / runtime) * 60.0f * 60.0f;
+	return (simulationsdonethisrun / runtime) * 3600.0;
+}
+
+string GetTweakModeString()
+{
+	switch (currenttweakmode)
+	{
+	case 1:
+		return "Tweaking filter " + to_string(currenttweakfilter + 1);
+		break;
+	case 2:
+		return "Tweaking connected layer";
+		break;
+	case 3:
+		return "Tweaking output layer";
+		break;
+	}
+
+	return "ERROR";
 }
 
 void PrintConsole() // Print a fresh console with all the bells and whistles
@@ -43,6 +63,7 @@ void PrintConsole() // Print a fresh console with all the bells and whistles
 	if (CurrentRunMode == RunMode::Learning)
 	{
 		cout << "Simulation " << OurSimulation.CurrentNumberofSimulations << "/" << OurSimulation.GoalNumberofSimulations << ". Think " << currentthink << "/" << OurSimulation.ThinksPerSimulation << ". Average Iteration " << (OurSimulation.CurrentAverageIteration + 1) << "/" << OurSimulation.AverageAlgorithmTries << ". Max TweakChance = " << (1.0 * pow(0.86f, OurSimulation.BestNumberofPorkchops)) * 100.0f << "%" << endl;
+		cout << GetTweakModeString() << endl;
 		cout << "Current simulation porkchops: " << OurSimulation.SimulationTotalPorkchops << +"(+" << HowMuchUncookedPork() << +")" << ". Best number: " << OurSimulation.BestNumberofPorkchops << " (achieved at simulation " << OurSimulation.BestAchievedAtIteration << ")" << endl;
 		cout << simulationsdonethisrun << " simulations done (" << GetSimulationsPerHour() << "/hr)" << endl;
 		cout << "Progress debt: " << GetProgressDebt() << endl;

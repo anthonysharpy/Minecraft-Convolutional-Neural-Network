@@ -41,7 +41,7 @@ bool imagedrawdirty;
 bool textdrawdirty;
 bool otherdrawdirty;
 
-float runtime;
+double runtime;
 int simulationsdonethisrun;
 
 void GotoMinecraftWindow()
@@ -87,6 +87,12 @@ void GetPixels()
 		system("Pause");
 		return;
 	}
+	if (hdcScreen == NULL)
+	{
+		cout << "GetDC(NULL) failed." << endl;
+		system("Pause");
+		return;
+	}
 
 	hdcMemDC = CreateCompatibleDC(hdcWindow);
 
@@ -120,6 +126,8 @@ void GetPixels()
 	// Create a compatible bitmap from the Window DC
 	hbmScreen = CreateCompatibleBitmap(hdcWindow, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
 
+	HGDIOBJ oldhdcobject;
+
 	if (hbmScreen == NULL)
 	{
 		cout << "CreateCompatibleBitmap() returned null ... rcClient.right was " + to_string(rcClient.right) << endl;
@@ -129,7 +137,7 @@ void GetPixels()
 	else
 	{
 		// Select the compatible bitmap into the compatible memory DC.
-		SelectObject(hdcMemDC, hbmScreen);
+		oldhdcobject = SelectObject(hdcMemDC, hbmScreen);
 	}
 
 	// Bit block transfer into our compatible memory DC.
@@ -190,7 +198,7 @@ void GetPixels()
 
 	//Clean up
 
-	SelectObject(hdcMemDC, hbmScreen);
+	SelectObject(hdcMemDC, oldhdcobject);
 
 	DeleteObject(hbmScreen);
 	DeleteDC(hdcMemDC);
@@ -459,16 +467,8 @@ int main()
 
 	bool screenshotted = false;
 
-	cout << "A" << endl;
-
-	cout << "B" << endl;
-
 	for (; OurSimulation.CurrentNumberofSimulations < OurSimulation.GoalNumberofSimulations; OurSimulation.CurrentNumberofSimulations++)
 	{
-		cout << "C" << endl;
-
-		otherdrawdirty = true;
-
 		timestweaked = 0;
 		timesnottweaked = 0;
 
@@ -478,12 +478,12 @@ int main()
 			TweakStuff(TweakChance, 1.1f);
 		}
 
+		otherdrawdirty = true;
+
 		OurSimulation.SimulationTotalPorkchops = 0;
 
 		for (OurSimulation.CurrentAverageIteration = 0; OurSimulation.CurrentAverageIteration < OurSimulation.AverageAlgorithmTries; OurSimulation.CurrentAverageIteration++)
 		{
-			cout << "D" << endl;
-
 			porknow = 0;
 			iterationtime = 0;
 
@@ -610,8 +610,6 @@ int main()
 
 			OurSimulation.SimulationTotalPorkchops += porknow;
 		}
-
-		cout << "E" << endl;
 
 	end_simulation:
 

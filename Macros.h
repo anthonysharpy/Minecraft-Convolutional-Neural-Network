@@ -10,7 +10,6 @@ void Suicide()
 	Sleep(1000);
 }
 
-
 void ClearInventory()
 {
 	PressLetterKeys("t/c");

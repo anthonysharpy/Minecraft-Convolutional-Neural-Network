@@ -6,6 +6,7 @@
 extern long GetTime();
 extern const int BotViewScreenWidth;
 extern const int BotViewScreenHeight;
+extern void PushConsoleLine(string);
 
 const int BOTINPUTPIXELHEIGHT = BotViewScreenHeight; //200;
 const int BOTINPUTPIXELWIDTH = BotViewScreenWidth; //320;
@@ -178,6 +179,17 @@ float GetRandomNumber(double from, double to)
 	unsigned long long result = distribution(generator) % range;
 
 	return (float)(((double)result / 100000.0)+from);
+}
+
+int GetRandomInt(int from, int to)
+{
+	to++;
+
+	int range = to - from;
+
+	int result = distribution(generator) % range;
+
+	return result + from;
 }
 
 inline float FastSigmoidFunction(float x)
@@ -436,83 +448,114 @@ inline bool ShouldTweak(float chance)
 	return false;
 }
 
+FilterRGBGroup* GetFilterByNum(int num)
+{
+	switch (num)
+	{
+	case 1:
+		return &Layer1Filter;
+		break;
+	case 2:
+		return &Layer2Filter;
+		break;
+	case 3:
+		return &Layer3Filter;
+		break;
+	case 4:
+		return &Layer4Filter;
+		break;
+	case 5:
+		return &Layer5Filter;
+		break;
+	}
+
+	cout << "ERROR. UNKNOWN LAYER.";
+	system("Pause");
+	return &Layer1Filter;
+}
+
+int currenttweakmode = 0;
+int currenttweakfilter = 0;
+
 void TweakStuff(float chanceoftweaking, float maxscalefactor) // from 0 - 1
 {
-	// Tweak fully connected weights
+	float n = GetRandomNumber(0, 1);
 
-	for (int i = 0; i < LAYER10NUMWEIGHTS; i++)
+	if (n <= 0.1) currenttweakmode = 1;
+	if (n > 0.1 && n <= 0.55) currenttweakmode = 2;
+	if (n > 0.55) currenttweakmode = 3;
+
+	switch (currenttweakmode)
 	{
-		if (ShouldTweak(chanceoftweaking)) Layer10Weights[i] = GetRandomNumber(-maxscalefactor, maxscalefactor);
-	}
-
-	for (int i = 0; i < OUTPUTLAYERNUMWEIGHTS; i++)
+	case 1:
 	{
-		if (ShouldTweak(chanceoftweaking)) OutputWeights[i] = GetRandomNumber(-maxscalefactor, maxscalefactor);
+		start1:
+		currenttweakfilter = GetRandomInt(0, 4);
+		chanceoftweaking = GetRandomNumber(0, 0.1);
+		float layermaxbias = GetSuitableMaxBiasForLayer(1);
+		FilterRGBGroup* thefilter = GetFilterByNum(currenttweakfilter + 1);
+
+		for (int i = 0; i < 9; i++)
+		{
+			if (ShouldTweak(chanceoftweaking)) thefilter->OurFilter.Weights[i].blueWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
+			if (ShouldTweak(chanceoftweaking)) thefilter->OurFilter.Weights[i].greenWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
+			if (ShouldTweak(chanceoftweaking)) thefilter->OurFilter.Weights[i].redWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
+		}
+
+		if (ShouldTweak(chanceoftweaking))
+		{
+			thefilter->Bias = GetRandomNumber(-layermaxbias, layermaxbias);
+		}
+
+		if (timestweaked == 0)
+		{
+			timesnottweaked = 0;
+			goto start1;
+		}
+		break;
 	}
-
-	// Tweak filter weights
-
-	for (int i = 0; i < 9; i++)
+	case 2:
 	{
-		if (ShouldTweak(chanceoftweaking)) Layer1Filter.OurFilter.Weights[i].blueWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-		if (ShouldTweak(chanceoftweaking)) Layer1Filter.OurFilter.Weights[i].greenWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-		if (ShouldTweak(chanceoftweaking)) Layer1Filter.OurFilter.Weights[i].redWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
+		start2:
+		float layer10maxbias = GetSuitableMaxBiasForLayer(10);
+
+		for (int i = 0; i < LAYER10NUMWEIGHTS; i++)
+		{
+			if (ShouldTweak(chanceoftweaking)) Layer10Weights[i] = GetRandomNumber(-maxscalefactor, maxscalefactor);
+		}
+		for (int i = 0; i < LAYER10SIZE; i++)
+		{
+			if (ShouldTweak(chanceoftweaking)) Layer10Biases[i] = GetRandomNumber(-layer10maxbias, layer10maxbias);
+		}
+
+		if (timestweaked == 0)
+		{
+			timesnottweaked = 0;
+			goto start2;
+		}
+		break;
 	}
-	
-	for (int i = 0; i < 9; i++)
+	case 3:
 	{
-		if (ShouldTweak(chanceoftweaking)) Layer2Filter.OurFilter.Weights[i].blueWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-		if (ShouldTweak(chanceoftweaking)) Layer2Filter.OurFilter.Weights[i].greenWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-		if (ShouldTweak(chanceoftweaking)) Layer2Filter.OurFilter.Weights[i].redWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
+	start3:
+
+		float outputmaxbias = GetSuitableMaxBiasForLayer(11);
+
+		for (int i = 0; i < OUTPUTLAYERNUMWEIGHTS; i++)
+		{
+			if (ShouldTweak(chanceoftweaking)) OutputWeights[i] = GetRandomNumber(-maxscalefactor, maxscalefactor);
+		}
+		for (int i = 0; i < OUTPUTLAYERSIZE; i++)
+		{
+			if (ShouldTweak(chanceoftweaking)) OutputBiases[i] = GetRandomNumber(-outputmaxbias, outputmaxbias);
+		}
+
+		if (timestweaked == 0)
+		{
+			timesnottweaked = 0;
+			goto start3;
+		}
+		break;
 	}
-
-	for (int i = 0; i < 9; i++)
-	{
-		if (ShouldTweak(chanceoftweaking)) Layer3Filter.OurFilter.Weights[i].blueWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-		if (ShouldTweak(chanceoftweaking)) Layer3Filter.OurFilter.Weights[i].greenWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-		if (ShouldTweak(chanceoftweaking)) Layer3Filter.OurFilter.Weights[i].redWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
 	}
-
-	for (int i = 0; i < 9; i++)
-	{
-		if (ShouldTweak(chanceoftweaking)) Layer4Filter.OurFilter.Weights[i].blueWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-		if (ShouldTweak(chanceoftweaking)) Layer4Filter.OurFilter.Weights[i].greenWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-		if (ShouldTweak(chanceoftweaking)) Layer4Filter.OurFilter.Weights[i].redWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-	}
-
-	for (int i = 0; i < 9; i++)
-	{
-		if (ShouldTweak(chanceoftweaking)) Layer5Filter.OurFilter.Weights[i].blueWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-		if (ShouldTweak(chanceoftweaking)) Layer5Filter.OurFilter.Weights[i].greenWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-		if (ShouldTweak(chanceoftweaking)) Layer5Filter.OurFilter.Weights[i].redWeight = GetRandomNumber(-maxscalefactor, maxscalefactor);
-	}
-
-	float layer1maxbias = GetSuitableMaxBiasForLayer(1);
-	float layer2maxbias = GetSuitableMaxBiasForLayer(2);
-	float layer3maxbias = GetSuitableMaxBiasForLayer(3);
-	float layer4maxbias = GetSuitableMaxBiasForLayer(4);
-	float layer5maxbias = GetSuitableMaxBiasForLayer(5);
-
-	float layer10maxbias = GetSuitableMaxBiasForLayer(10);
-	float outputmaxbias = GetSuitableMaxBiasForLayer(11);
-
-	// Tweak fully connected biases
-
-	for (int i = 0; i < LAYER10SIZE; i++)
-	{
-		if (ShouldTweak(chanceoftweaking)) Layer10Biases[i] = GetRandomNumber(-layer10maxbias, layer10maxbias);
-	}
-
-	for (int i = 0; i < OUTPUTLAYERSIZE; i++)
-	{
-		if (ShouldTweak(chanceoftweaking)) OutputBiases[i] = GetRandomNumber(-outputmaxbias, outputmaxbias);
-	}
-
-	// Tweak filter biases;
-
-	if (ShouldTweak(chanceoftweaking)) Layer1Filter.Bias = GetRandomNumber(-layer1maxbias, layer1maxbias);
-	if (ShouldTweak(chanceoftweaking)) Layer2Filter.Bias = GetRandomNumber(-layer2maxbias, layer2maxbias);
-	if (ShouldTweak(chanceoftweaking)) Layer3Filter.Bias = GetRandomNumber(-layer3maxbias, layer3maxbias);
-	if (ShouldTweak(chanceoftweaking)) Layer4Filter.Bias = GetRandomNumber(-layer4maxbias, layer4maxbias);
-	if (ShouldTweak(chanceoftweaking)) Layer5Filter.Bias = GetRandomNumber(-layer5maxbias, layer5maxbias);
 }
