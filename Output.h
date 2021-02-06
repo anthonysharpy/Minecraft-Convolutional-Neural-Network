@@ -62,7 +62,7 @@ void PrintConsole() // Print a fresh console with all the bells and whistles
 
 	if (CurrentRunMode == RunMode::Learning)
 	{
-		cout << "Simulation " << OurSimulation.CurrentNumberofSimulations << "/" << OurSimulation.GoalNumberofSimulations << ". Think " << currentthink << "/" << OurSimulation.ThinksPerSimulation << ". Average Iteration " << (OurSimulation.CurrentAverageIteration + 1) << "/" << OurSimulation.AverageAlgorithmTries << ". Max TweakChance = " << (1.0 * pow(0.86f, OurSimulation.BestNumberofPorkchops)) * 100.0f << "%" << endl;
+		cout << "Simulation " << OurSimulation.CurrentNumberofSimulations << "/" << OurSimulation.GoalNumberofSimulations << ". Think " << currentthink << "/" << OurSimulation.ThinksPerSimulation << ". Average Iteration " << (OurSimulation.CurrentAverageIteration + 1) << "/" << OurSimulation.AverageAlgorithmTries << ". Max TweakChance = " << TweakChance * 100.0f << "%" << endl;
 		cout << GetTweakModeString() << endl;
 		cout << "Current simulation porkchops: " << OurSimulation.SimulationTotalPorkchops << +"(+" << HowMuchUncookedPork() << +")" << ". Best number: " << OurSimulation.BestNumberofPorkchops << " (achieved at simulation " << OurSimulation.BestAchievedAtIteration << ")" << endl;
 		cout << simulationsdonethisrun << " simulations done (" << GetSimulationsPerHour() << "/hr)" << endl;

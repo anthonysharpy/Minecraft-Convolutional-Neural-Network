@@ -481,9 +481,9 @@ void TweakStuff(float chanceoftweaking, float maxscalefactor) // from 0 - 1
 {
 	float n = GetRandomNumber(0, 1);
 
-	if (n <= 0.1) currenttweakmode = 1;
-	if (n > 0.1 && n <= 0.55) currenttweakmode = 2;
-	if (n > 0.55) currenttweakmode = 3;
+	if (n <= 0.33) currenttweakmode = 1;
+	if (n > 0.33 && n <= 0.66) currenttweakmode = 2;
+	if (n > 0.66) currenttweakmode = 3;
 
 	switch (currenttweakmode)
 	{

@@ -57,6 +57,7 @@ long GetTime()
 	return (long)std::chrono::duration_cast<std::chrono::microseconds>(p1.time_since_epoch()).count();
 }
 
+// Apparently this really should be called from WM_PAINT in a Windows procedure. lol.
 void GetPixels()
 {
 	long prepixels = GetTime();
@@ -126,8 +127,6 @@ void GetPixels()
 	// Create a compatible bitmap from the Window DC
 	hbmScreen = CreateCompatibleBitmap(hdcWindow, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
 
-	HGDIOBJ oldhdcobject;
-
 	if (hbmScreen == NULL)
 	{
 		cout << "CreateCompatibleBitmap() returned null ... rcClient.right was " + to_string(rcClient.right) << endl;
@@ -137,7 +136,7 @@ void GetPixels()
 	else
 	{
 		// Select the compatible bitmap into the compatible memory DC.
-		oldhdcobject = SelectObject(hdcMemDC, hbmScreen);
+		SelectObject(hdcMemDC, hbmScreen);
 	}
 
 	// Bit block transfer into our compatible memory DC.
@@ -183,12 +182,6 @@ void GetPixels()
 	bi.biClrUsed = 0;
 	bi.biClrImportant = 0;
 
-	// Starting with 32-bit Windows, GlobalAlloc and LocalAlloc are implemented as wrapper functions that 
-	// call HeapAlloc using a handle to the process's default heap. Therefore, GlobalAlloc and LocalAlloc 
-	// have greater overhead than HeapAlloc.
-	//HANDLE hDIB = GlobalAlloc(GHND, dwBmpSize);
-	//Pixels = (GlobalLock(hDIB);
-
 	// Gets the "bits" from the bitmap and copies them into a buffer 
 	// which is pointed to by lpbitmap.
 	GetDIBits(hdcWindow, hbmScreen, 0,
@@ -198,13 +191,10 @@ void GetPixels()
 
 	//Clean up
 
-	SelectObject(hdcMemDC, oldhdcobject);
-
 	DeleteObject(hbmScreen);
 	DeleteDC(hdcMemDC);
-
-	ReleaseDC(hWnd, hdcWindow);
 	ReleaseDC(NULL, hdcScreen);
+	ReleaseDC(hWnd, hdcWindow);
 
 	long postpixels = GetTime();
 	getpixelstime = (postpixels - prepixels) / 1000000.0f;
@@ -443,6 +433,11 @@ void InvalidateImages()
 	InvalidateRect(GUIWindowHwnd, &r, FALSE);
 }
 
+float GetTweakChance()
+{
+	return GetRandomNumber(0.0, 1.0) * (float)(1.0 * pow(0.8575f, OurSimulation.BestNumberofPorkchops));
+}
+
 int main()
 {
 	long prestart = GetTime();
@@ -474,7 +469,7 @@ int main()
 
 		if (CurrentRunMode == RunMode::Learning)
 		{
-			TweakChance = GetRandomNumber(0.0, 1.0) * (float)(1.0 * pow(0.86f, OurSimulation.BestNumberofPorkchops));
+			TweakChance = GetTweakChance();
 			TweakStuff(TweakChance, 1.1f);
 		}
 
