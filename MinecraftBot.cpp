@@ -100,16 +100,35 @@ void GetPixels()
 	if (!hdcMemDC)
 	{
 		MessageBox(hWnd, L"CreateCompatibleDC has failed", L"Failed", MB_OK);
+		system("Pause");
 		return;
 	}
 
 	if (GetClientRect(hWnd, &rcClient) == 0)
 	{
 		cout << "GetClientRect() failed ... error was " + to_string(GetLastError()) << endl;
+		system("Pause");
 	}
 
 	//This is the best stretch mode
-	SetStretchBltMode(hdcWindow, HALFTONE);
+	if (!SetStretchBltMode(hdcWindow, HALFTONE))
+	{
+		cout << "Unable to SetStretchBltMode()\n";
+		system("Pause");
+	}
+
+	if (rcClient.right != BotViewScreenWidth)
+	{
+		cout << "rcClient right not equal to BotViewScreenWidth\n";
+		system("Pause");
+		return;
+	}
+	if (rcClient.bottom != BotViewScreenHeight)
+	{
+		cout << "rcClient bottom not equal to BotViewScreenHeight\n";
+		system("Pause");
+		return;
+	}
 
 	//The source DC is the entire screen and the destination DC is the current window (HWND)
 	if (!StretchBlt(hdcWindow,
@@ -117,11 +136,12 @@ void GetPixels()
 		rcClient.right, rcClient.bottom,
 		hdcScreen,
 		0, 0,
-		GetSystemMetrics(SM_CXSCREEN),
-		GetSystemMetrics(SM_CYSCREEN),
+		1920,
+		1080,
 		SRCCOPY))
 	{
 		MessageBox(hWnd, L"StretchBlt has failed", L"Failed", MB_OK);
+		system("Pause");
 	}
 
 	// Create a compatible bitmap from the Window DC
@@ -148,6 +168,7 @@ void GetPixels()
 		SRCCOPY))
 	{
 		MessageBox(hWnd, L"BitBlt has failed", L"Failed", MB_OK);
+		system("Pause");
 	}
 
 	// Get the BITMAP from the HBITMAP
@@ -184,17 +205,29 @@ void GetPixels()
 
 	// Gets the "bits" from the bitmap and copies them into a buffer 
 	// which is pointed to by lpbitmap.
-	GetDIBits(hdcWindow, hbmScreen, 0,
+	if (!GetDIBits(hdcWindow, hbmScreen, 0,
 		(UINT)bmpScreen.bmHeight,
 		Pixels,
-		(BITMAPINFO *)&bi, DIB_RGB_COLORS);
+		(BITMAPINFO*)&bi, DIB_RGB_COLORS))
+	{
+		cout << "GetDIBits error.\n";
+		system("Pause");
+	}
 
 	//Clean up
 
 	DeleteObject(hbmScreen);
 	DeleteDC(hdcMemDC);
-	ReleaseDC(NULL, hdcScreen);
-	ReleaseDC(hWnd, hdcWindow);
+	if (!ReleaseDC(NULL, hdcScreen))
+	{
+		cout << "Couldn't ReleaseDC() hdcScreen\n";
+		system("Pause");
+	}
+	if (!ReleaseDC(hWnd, hdcWindow))
+	{
+		cout << "Couldn't ReleaseDC() hdcWindow\n";
+		system("Pause");
+	}
 
 	long postpixels = GetTime();
 	getpixelstime = (postpixels - prepixels) / 1000000.0f;
